@@ -1,24 +1,30 @@
 #!/usr/bin/env python
 import csv
+import math
+import os
 import textwrap
 
 from PIL import Image, ImageDraw, ImageFont
 
 # Card options
 CARD_SCALE = 200
-BIG_TEXT_SCALE = 150
-SMALL_TEXT_SCALE = 40
-FONT_TTF = "./HelveticaNeueLTStd-Bd.otf"
+BIG_TEXT_SCALE = 120
+BIG_TEXT_HEIGHT = math.floor(BIG_TEXT_SCALE * 1.333)
+BIG_TEXT_SPACING_VERTICAL = math.floor(BIG_TEXT_HEIGHT / 10)
+TOP_TEXT_SCALE = 40
+TOP_TEXT = "Cult Against Humanity."
+MARGIN_SIDE = 50
+MARGIN_TOP = (150, 50)  # big, small
+TEXT_WRAP = 14
+FONT_TTF = "HelveticaNeueLTStd-Bd.otf"
 
 # Program constants
 CARD_SIZE = (CARD_SCALE * 5, CARD_SCALE * 7)
-TEXT_WIDTH = CARD_SCALE // BIG_TEXT_SCALE
-print(TEXT_WIDTH)
 VALUES_FILE = "values.csv"
 MAIN_FONT = ImageFont.truetype(FONT_TTF, size=BIG_TEXT_SCALE)
-SMALL_FONT = ImageFont.truetype(FONT_TTF, size=SMALL_TEXT_SCALE)
-WHITE = (0, 0, 0)
-BLACK = (255, 255, 255)
+SMALL_FONT = ImageFont.truetype(FONT_TTF, size=TOP_TEXT_SCALE)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
 # Get our CSV vals
 with open(VALUES_FILE, "rt") as csv_file:
@@ -31,27 +37,30 @@ for card_num, card_text in enumerate(csv_reader):
     card_text = card_text[0]
 
     # Wrapping
-    card_text = textwrap.fill(card_text, width=9)
+    card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
 
     # Initialise image
-    current_img = Image.new("RGB", (1000, 1600), color=BLACK)
+    current_img = Image.new("RGB", (1000, 1600), color=WHITE)
     drawn = ImageDraw.Draw(current_img)
 
-    # Add the main text
+    # Add the header text
     drawn.text(
-        [x / 20 for x in CARD_SIZE],
-        card_text,
-        font=MAIN_FONT,
-        fill=WHITE,
-    )
-
-    # Add the smol text
-    drawn.text(
-        [x / 50 for x in CARD_SIZE],
+        (MARGIN_SIDE, MARGIN_TOP[1]),
         "Cult Against Humanity",
         font=SMALL_FONT,
-        fill=WHITE,
+        fill=BLACK,
     )
 
+    # Add the main text
+    for num, line in enumerate(card_text):
+        pos = (MARGIN_SIDE,
+               MARGIN_TOP[0] + ((BIG_TEXT_HEIGHT + BIG_TEXT_SPACING_VERTICAL) * num))
+        drawn.text(
+            pos,
+            line,
+            font=MAIN_FONT,
+            fill=BLACK,
+        )
+
     # Save it
-    current_img.save(f"cards/card{card_num}.png")
+    current_img.save(os.path.join("cards", f"card{card_num}.png"))
