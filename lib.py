@@ -1,5 +1,5 @@
-import enum
 import math
+import os
 import textwrap
 
 from PIL import Image, ImageDraw, ImageFont
@@ -14,28 +14,35 @@ MARGINS = (150, 50, 50, 50)
 # Chars to wrap at
 TEXT_WRAP = 17
 FONT_TTF = "HelveticaNeueLTStd-Bd.otf"
+CARDS_DIR = "cards"
 
 # Program constants
 CARD_SIZE = (CARD_SCALE * 5, CARD_SCALE * 7)
 MAIN_FONT = ImageFont.truetype(FONT_TTF, size=BIG_TEXT_SCALE)
 SMALL_FONT = ImageFont.truetype(FONT_TTF, size=TOP_TEXT_SCALE)
+COLOURS = ("white", "black")
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BIG_TEXT_HEIGHT = math.floor(BIG_TEXT_SCALE * 1.2)
 TOP_TEXT_HEIGHT = math.floor(TOP_TEXT_SCALE * 1.333)
 
 
-class CARD_TYPE(enum.Enum):
-    WHITE = 0
-    BLACK = 1
+def card_path(card_type, num, expansion=None):
+    if expansion is None:
+        folder = CARDS_DIR
+    else:
+        folder = os.path.join(CARDS_DIR, expansion.replace(" ", ""))
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    return os.path.join(folder, f"{card_type}{num}.png")
 
 
 def make_card(card_text,
               file_name,
               expansion="",
-              card_type=CARD_TYPE.WHITE,
+              card_type="white",
               show_small=True):
-    if card_type == CARD_TYPE.WHITE:
+    if card_type == "white":
         text_col = BLACK
         back_col = WHITE
     else:
