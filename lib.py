@@ -55,7 +55,7 @@ def make_card(card_text,
     card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
 
     # Initialise image
-    current_img = Image.new("RGB", (1000, 1600), color=back_col)
+    current_img = Image.new("RGB", CARD_SIZE, color=back_col)
     drawn = ImageDraw.Draw(current_img)
 
     # Add the main text
@@ -80,10 +80,7 @@ def make_card(card_text,
 
         # Add the footer text
         drawn.text(
-            (
-                MARGIN_SIDE,
-                CARD_SIZE[1] - (TOP_TEXT_HEIGHT + MARGIN_BOTTOM),
-            ),
+            (MARGIN_SIDE, CARD_SIZE[1] - MARGIN_BOTTOM - TOP_TEXT_HEIGHT),
             expansion,
             font=SMALL_FONT,
             fill=text_col,

@@ -14,7 +14,7 @@ CARDS_DIR = "cards"
 # Get our csv and decode into string
 csv_raw = request.urlopen(
     f"https://docs.google.com/spreadsheets/d/{GDOC_ID}/export?exportFormat=csv"
-).read().decode("unicode-escape")
+).read().decode("utf-8")
 
 # Create all the cards, with multithreading
 with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
