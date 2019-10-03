@@ -19,6 +19,7 @@ EXPANSIONS = (
     "Overwatch_Expansion",
     "TF2_Expansion",
     "Titanfall_Expansion",
+    "Vines_Expansion",
 )
 
 # Clear results directories
