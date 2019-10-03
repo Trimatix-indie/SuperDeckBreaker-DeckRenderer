@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import csv
 import shutil
 from concurrent import futures
@@ -10,7 +10,6 @@ import psutil
 from lib import BUILD_DIR, CARDS_DIR, COLOURS, TITLE_TEXT, card_path, make_card
 
 SPREADSHEET_ID = open("spreadsheet_id.txt", "rt").readline()
-CSV_FILE = "raw.csv"
 EXPANSIONS = (
     "Base_Game",
     "Apex_Expansion",
@@ -23,8 +22,11 @@ EXPANSIONS = (
 )
 
 # Clear results directories
-shutil.rmtree(BUILD_DIR)
-shutil.rmtree(CARDS_DIR)
+try:
+    shutil.rmtree(CARDS_DIR)
+    shutil.rmtree(BUILD_DIR)
+except FileNotFoundError:
+    pass
 
 for expansion in EXPANSIONS:
     # Get our csv, decode into string and make a reader
@@ -34,7 +36,7 @@ for expansion in EXPANSIONS:
     csv_reader = csv.reader(csv_raw.split("\n"))
 
     # Write the csv data to a file for debugging
-    with open(CSV_FILE, "wt") as my_file:
+    with open(expansion + ".csv", "wt") as my_file:
         my_file.write(csv_raw)
 
     # Format and Write the cards
@@ -53,8 +55,8 @@ for expansion in EXPANSIONS:
 # Create card backs
 for colour in COLOURS:
     make_card(
-        TITLE_TEXT + ".",
-        card_path(colour, "Back"),
+        TITLE_TEXT,
+        card_path(colour, "Back" + colour, root_dir=True),
         show_small=False,
         card_type=colour,
     )

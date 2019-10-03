@@ -12,7 +12,7 @@ TITLE_TEXT = "Cult Against Humanity"
 # Margins (top big text, top small text, sides, bottom)
 MARGINS = (150, 50, 50, 50)
 # Chars to wrap at
-TEXT_WRAP = 17
+TEXT_WRAP = 16
 # otf/ttf file to use for the font
 FONT_TTF = "HelveticaNeueLTStd-Bd.otf"
 # Folders for the in-progress cards and built templates
@@ -34,9 +34,13 @@ WHITE = (255, 255, 255)
 existing_folders = dict()
 
 
-def card_path(card_type, num, expansion=None, build=False):
+def card_path(card_type, num, expansion=None, build=False, root_dir=False):
+    "Returns {CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>.png"
     global existing_folders
     folder = BUILD_DIR if build else CARDS_DIR
+
+    if root_dir:
+        return os.path.join(folder, f"card{num}.png")
     if expansion is not None:
         folder = os.path.join(folder, expansion.replace(" ", ""))
     folder = os.path.join(folder, card_type)
