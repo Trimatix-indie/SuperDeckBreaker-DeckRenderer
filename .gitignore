@@ -2,3 +2,4 @@ __pycache__
 cards
 build
 *.csv
+spreadsheet_id.txt

@@ -9,7 +9,7 @@ import psutil
 
 from lib import BUILD_DIR, CARDS_DIR, COLOURS, TITLE_TEXT, card_path, make_card
 
-SPREADSHEET_ID = open("spreadsheet_id.txt", "rt").readline()
+SPREADSHEET_ID = open("./spreadsheet_id.txt", "rt").readline()
 EXPANSIONS = (
     "Base_Game",
     "Apex_Expansion",
