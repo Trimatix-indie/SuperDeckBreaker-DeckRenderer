@@ -28,6 +28,7 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
                         card_path(colour, c[0], expansion=expansion_name),
                         expansion_name,
                         colour,
+                        deck_name
                     ) for c in enumerate(cards)],
                 )
 

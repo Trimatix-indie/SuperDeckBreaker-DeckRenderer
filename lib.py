@@ -55,6 +55,7 @@ def make_card(
         expansion="",
         card_type="white",
         show_small=True,
+        game_name=""
 ):
     if card_type == "white":
         text_col = BLACK
@@ -71,7 +72,6 @@ def make_card(
 
     # Wrapping
     card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
-    card_text = "\n".join(card_text)
 
     # Initialise image
     current_img = Image.new("RGB", CARD_SIZE, color=back_col)
@@ -91,7 +91,7 @@ def make_card(
         # Add the header text
         drawn.text(
             (MARGINS[2], MARGINS[1]),
-            card_text,
+            game_name,
             font=TITLE_FONT,
             fill=text_col,
         )
@@ -106,3 +106,4 @@ def make_card(
 
     # Save it
     current_img.save(file_name)
+    print("image saved: " + file_name)
