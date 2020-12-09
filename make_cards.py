@@ -26,7 +26,7 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
             for cardNum in range(len(cards)):
                 card_path(colour, cardNum, expansion=expansion_name)
                 print("CARD",cards[cardNum])
-                make_card(cards[cardNum], card_path(colour, cardNum, expansion=expansion_name), exansion=expansion_name, card_type=colour)
+                make_card(cards[cardNum], card_path(colour, cardNum, expansion=expansion_name), expansion=expansion_name, card_type=colour)
 
     print("BACKS")
     # Create card backs

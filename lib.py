@@ -58,11 +58,15 @@ def make_card(
         show_small=True,
 ):
     if card_type == "white":
-        text_col = BLACK
-        back_col = WHITE
+        # text_col = BLACK
+        text_col = "black"
+        # back_col = WHITE
+        back_col = "white"
     else:
-        text_col = WHITE
-        back_col = BLACK
+        # text_col = WHITE
+        text_col = "black"
+        # back_col = BLACK
+        back_col = "white"
 
     # Skip blank lines created by fucked formatting
     if card_text in ([""], "", []):
