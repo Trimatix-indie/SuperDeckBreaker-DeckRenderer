@@ -65,6 +65,7 @@ def make_card(
 
     # Skip blank lines created by fucked formatting
     if card_text in ([""], "", []):
+        print("null card found: " + card_text)
         return
     card_text = "".join(card_text)
 
