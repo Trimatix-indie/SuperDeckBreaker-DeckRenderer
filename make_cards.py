@@ -35,7 +35,7 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
     for colour in COLOURS:
         make_card(
             deck_name,
-            card_path(colour, "Back" + colour),#, root_dir=True),
+            card_path(colour, "Back" + colour, root_dir=True),
             show_small=False,
             card_type=colour,
         )
