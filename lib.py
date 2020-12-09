@@ -35,7 +35,6 @@ existing_folders = dict()
 
 def card_path(card_type, num, expansion=None, build=False, root_dir=False):
     "Returns {CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>.png"
-
     global existing_folders
     folder = BUILD_DIR if build else CARDS_DIR
 
@@ -58,23 +57,21 @@ def make_card(
         show_small=True,
 ):
     if card_type == "white":
-        # text_col = BLACK
-        text_col = "black"
-        # back_col = WHITE
-        back_col = "white"
+        text_col = BLACK
+        back_col = WHITE
     else:
-        # text_col = WHITE
-        text_col = "black"
-        # back_col = BLACK
-        back_col = "white"
+        text_col = WHITE
+        back_col = BLACK
 
     # Skip blank lines created by fucked formatting
     if card_text in ([""], "", []):
+        print("null card found: " + card_text)
         return
     card_text = "".join(card_text)
 
     # Wrapping
     card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
+    card_text = "\n".join(card_text)
 
     # Initialise image
     current_img = Image.new("RGB", CARD_SIZE, color=back_col)
