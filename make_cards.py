@@ -20,6 +20,8 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
     for expansion_name in expansions:
         # Format and Write the cards
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
+            for c in enumerate(cards):
+                print("make_card", c[1], card_path(colour, c[0], expansion=expansion_name), expansion_name, colour)
             with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
                 executor.map(
                     lambda elem: make_card(*elem),
