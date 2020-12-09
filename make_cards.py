@@ -25,6 +25,9 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
             for cardNum in range(len(cards)):
                 card_path(colour, cardNum, expansion=expansion_name)
+                print("COLOUR",colour)
+                print("CARDNUM",cardNum)
+                print("EXPANSIONNAME",expansion_name)
                 make_card(cards[cardNum], card_path(colour, cardNum, expansion=expansion_name), expansion_name, colour)
 
     print("BACKS")
