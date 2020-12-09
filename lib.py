@@ -106,4 +106,3 @@ def make_card(
 
     # Save it
     current_img.save(file_name)
-    print("image saved: " + file_name)
