@@ -90,7 +90,7 @@ def make_card(
         # Add the header text
         drawn.text(
             (MARGINS[2], MARGINS[1]),
-            TITLE_TEXT,
+            card_text,
             font=TITLE_FONT,
             fill=text_col,
         )
