@@ -36,8 +36,6 @@ existing_folders = dict()
 def card_path(card_type, num, expansion=None, build=False, root_dir=False):
     "Returns {CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>.png"
 
-    print("card_path",card_type,num,expansion)
-
     global existing_folders
     folder = BUILD_DIR if build else CARDS_DIR
 
@@ -68,7 +66,6 @@ def make_card(
 
     # Skip blank lines created by fucked formatting
     if card_text in ([""], "", []):
-        print("null card found: " + card_text)
         return
     card_text = "".join(card_text)
 
