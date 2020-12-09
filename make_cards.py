@@ -16,9 +16,11 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
         shutil.rmtree(BUILD_DIR)
     except FileNotFoundError:
         pass
-
+    
+    print("EXPANSIONS")
     for expansion_name in expansions:
         # Format and Write the cards
+        print(zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"]))
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
             with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
                 executor.map(
@@ -31,6 +33,7 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
                     ) for c in enumerate(cards)],
                 )
 
+    print("BACKS")
     # Create card backs
     for colour in COLOURS:
         make_card(
