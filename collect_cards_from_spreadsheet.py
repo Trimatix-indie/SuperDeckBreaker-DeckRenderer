@@ -24,6 +24,6 @@ def collect_cards():
         expansions[expansion.title] = {"white": [card for card in expansion.col_values(1) if card],
                                         "black": [card for card in expansion.col_values(2) if card]}
 
-    return expansions
+    return expansions, worksheet["title"]
 
 
