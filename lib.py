@@ -63,8 +63,6 @@ def make_card(
         text_col = WHITE
         back_col = BLACK
 
-    print("render card: " + card_text)
-
     # Skip blank lines created by fucked formatting
     if card_text in ([""], "", []):
         return
@@ -106,3 +104,4 @@ def make_card(
 
     # Save it
     current_img.save(file_name)
+    print("image saved: " + file_name)
