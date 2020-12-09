@@ -8,7 +8,6 @@ from PIL import Image, ImageDraw, ImageFont
 CARD_SCALE = 200
 CONTENT_TEXT_SCALE = 100
 TITLE_TEXT_SCALE = 40
-TITLE_TEXT = "Cult Against Humanity"
 # Margins (top big text, top small text, sides, bottom)
 MARGINS = (150, 50, 50, 50)
 # Chars to wrap at
