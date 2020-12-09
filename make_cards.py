@@ -23,12 +23,15 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
         # Format and Write the cards
         # print(list(zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"]))))
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
-            for card in cards:
-                make_card(card[1], card_path(colour, card[0], expansion=expansion_name), expansion_name, colour)
+            for cardNum in range(len(cards)):
+                card_path(colour, cardNum, expansion=expansion_name)
+                print("CARD",cards[cardNum])
+                make_card(cards[cardNum], card_path(colour, cardNum, expansion=expansion_name), expansion_name, colour)
 
     print("BACKS")
     # Create card backs
     for colour in COLOURS:
+        card_path(colour, "Back" + colour, root_dir=True)
         make_card(
             deck_name,
             card_path(colour, "Back" + colour, root_dir=True),
