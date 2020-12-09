@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import csv
+from math import exp
 import shutil
 from concurrent import futures
 from itertools import zip_longest
@@ -22,16 +23,8 @@ def render_all(expansions, deck_name="Super Deck Breaker"):
         # Format and Write the cards
         print(list(zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"]))))
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
-            with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
-                executor.map(
-                    lambda elem: make_card(*elem),
-                    [(
-                        c[1],
-                        card_path(colour, c[0], expansion=expansion_name),
-                        expansion_name,
-                        colour,
-                    ) for c in enumerate(cards)],
-                )
+            for cardNum in range(len(cards)):
+                make_card(cards[cardNum], card_path(colour, cardNum, expansion=expansion_name), expansion_name, colour)
 
     print("BACKS")
     # Create card backs
