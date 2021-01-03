@@ -91,14 +91,14 @@ def render_all(gameData):
 
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
             totalCards = len(expansions[expansion_name][colour])
+            if drive is None:
+                drive = GoogleDrive(gauth)
+                
             if colour != currentColour:
                 colourDir = drive.CreateFile({'title' : colour, 'mimeType' : 'application/vnd.google-apps.folder', 'parents': [{'id' : expansionDir['id']}]})
                 uploadFile(colourDir)
                 print("Uploading " + colour + " cards")
                 progress = ProgressTracker(totalCards)
-
-            if drive is None:
-                drive = GoogleDrive(gauth)
 
             with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
                 executor.map(
