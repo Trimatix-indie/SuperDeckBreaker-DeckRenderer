@@ -122,7 +122,7 @@ def render_all(gameData):
             card_path(colour, "Back" + colour, root_dir=True),
             show_small=False,
             card_type=colour,
-            progress=progress
+            progress=progress,
             back=True
         )
 
