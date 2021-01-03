@@ -105,7 +105,7 @@ def make_card(
             deckFolder = None
             file_list = drive.ListFile({'q': "'" + sdbFolder['id'] + "' in parents and trashed=false"}).GetList()
             for rootF in file_list:
-                if rootF["title"] == deck_name and rootF["mimeType"] == 'application/vnd.google-apps.folder':
+                if rootF["title"] == game_name and rootF["mimeType"] == 'application/vnd.google-apps.folder':
                     deckFolder = rootF
                     break
 
