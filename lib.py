@@ -133,7 +133,13 @@ def make_card(
     if card_text in ([""], "", []):
         print("null card found: " + card_text)
         return
-    card_text = "".join(card_text)
+
+    if isinstance(card_text, list):
+        for lineNum in range(len(card_text)):
+            card_text[lineNum] = card_text[lineNum].replace("\\n", "\n")
+        card_text = "".join(card_text)
+    elif isinstance(card_text, str):
+        card_text = card_text.replace("\\n", "\n")
 
     # Wrapping
     card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
