@@ -84,10 +84,43 @@ def make_card(
         drive=None,
         colourDir=None
 ):
-    if drive is None:
+    if None in [drive, colourDir]:
         gauth = GoogleAuth()
         gauth.credentials = GoogleCredentials.get_application_default()
-        drive = GoogleDrive(gauth)
+
+        if drive is None:
+            drive = GoogleDrive(gauth)
+
+        if colourDir is None:
+            sdbFolder = None
+            file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
+            for rootF in file_list:
+                if rootF["title"] == "SuperDeckBreaker" and rootF["mimeType"] == 'application/vnd.google-apps.folder':
+                    sdbFolder = rootF
+                    break
+
+            if sdbFolder is None:
+                raise RuntimeError("sdbFolder not found")
+
+            deckFolder = None
+            file_list = drive.ListFile({'q': "'" + sdbFolder['id'] + "' in parents and trashed=false"}).GetList()
+            for rootF in file_list:
+                if rootF["title"] == deck_name and rootF["mimeType"] == 'application/vnd.google-apps.folder':
+                    deckFolder = rootF
+                    break
+
+            if deckFolder is None:
+                raise RuntimeError("deckFolder not found")
+
+            file_list = drive.ListFile({'q': "'" + deckFolder['id'] + "' in parents and trashed=false"}).GetList()
+            for rootF in file_list:
+                if rootF["title"] == card_type and rootF["mimeType"] == 'application/vnd.google-apps.folder':
+                    colourDir = rootF
+                    break
+
+            if colourDir is None:
+                raise RuntimeError("colourDir not found")
+
 
     if card_type == COLOURS[0]:
         text_col = BLACK
