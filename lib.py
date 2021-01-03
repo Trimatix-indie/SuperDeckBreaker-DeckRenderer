@@ -1,7 +1,8 @@
 import math
 import os
 import textwrap
-from urllib import request
+# from urllib import request
+import requests
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -146,7 +147,7 @@ def make_card(
             newFile = drive.CreateFile(metadata={'parents' : [{'id' : progress.deckFolder['id']}]})
             newFile.SetContentFile(file_name)
             uploadFile(newFile)
-            progress.meta_dict[card_type + "_back"] = request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url
+            progress.meta_dict[card_type + "_back"] = requests.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url
         
         else:
             newFile = drive.CreateFile(metadata={'parents' : [{'id' : colourDir['id']}]})
@@ -158,7 +159,7 @@ def make_card(
             
             if card_type == COLOURS[0]:
                 progress.meta_dict[expansion][card_type].append({"text": card_text,
-                                                        'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
+                                                        'url': requests.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
             elif card_type == COLOURS[1]:
                 progress.meta_dict[expansion][card_type].append({"text": card_text, "requiredWhiteCards": card_text.count("_"),
-                                                        'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
+                                                        'url': requests.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
