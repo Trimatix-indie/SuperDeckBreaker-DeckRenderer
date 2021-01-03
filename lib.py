@@ -110,7 +110,7 @@ def make_card(
                     break
 
             if deckFolder is None:
-                raise RuntimeError("deckFolder not found")
+                raise RuntimeError("deckFolder not found: " + game_name)
 
             file_list = drive.ListFile({'q': "'" + deckFolder['id'] + "' in parents and trashed=false"}).GetList()
             for rootF in file_list:
