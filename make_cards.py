@@ -19,8 +19,10 @@ from lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card, uploadFile
 
 
 class ProgressTracker:
-    def __init__(self):
-        self.soFar, self.totalCards, self.percent = 0, 0, 0
+    def __init__(self, totalCards):
+        self.soFar = 0
+        self.totalCards = totalCards
+        self.percent = 0
 
     def renderCard(self, elem):
         make_card(*elem)
@@ -90,7 +92,7 @@ def render_all(gameData):
                 colourDir = drive.CreateFile({'title' : colour, 'mimeType' : 'application/vnd.google-apps.folder', 'parents': [{'id' : expansionDir['id']}]})
                 uploadFile(colourDir)
                 print("Uploading " + colour + " cards")
-                progress = ProgressTracker()
+                progress = ProgressTracker(totalCards)
 
             with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
                 executor.map(
