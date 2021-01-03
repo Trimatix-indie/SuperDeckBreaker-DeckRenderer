@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-import csv
 import shutil
 from concurrent import futures
-from itertools import zip_longest
-from urllib import request
 import json
 
 from pydrive.auth import GoogleAuth
@@ -153,5 +150,5 @@ def render_all(gameData):
                             'value': 'anyone',
                             'role': 'reader'})
 
-    print('Here\'s your deck url! Give this to the SuperDeckBreaker bot\'s add-deck command: http://drive.google.com/uc?export=download&id=' + newFile['id'])
+    print('Here\'s your deck url! Give this to the SuperDeckBreaker bot\'s add-deck command: https://drive.google.com/uc?export=download&id=' + newFile['id'])
     
