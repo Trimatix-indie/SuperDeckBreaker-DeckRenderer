@@ -9,6 +9,7 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive, GoogleDriveFileList
 from googleapiclient.errors import HttpError
 from pydrive.files import ApiRequestError
+from oauth2client.client import GoogleCredentials
 import time
 
 from os import listdir
@@ -83,6 +84,11 @@ def make_card(
         drive=None,
         colourDir=None
 ):
+    if drive is None:
+        gauth = GoogleAuth()
+        gauth.credentials = GoogleCredentials.get_application_default()
+        drive = GoogleDrive(gauth)
+
     if card_type == COLOURS[0]:
         text_col = BLACK
         back_col = WHITE
