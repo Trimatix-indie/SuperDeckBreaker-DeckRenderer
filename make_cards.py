@@ -148,4 +148,9 @@ def render_all(gameData):
         f.write(json.dumps(progress.meta_dict))
     newFile.SetContentFile(deck_name + ".json")
     uploadFile(newFile)
+    permission = newFile.InsertPermission({
+                            'type': 'anyone',
+                            'value': 'anyone',
+                            'role': 'reader'})
+
     print('Here\'s your deck url! Give this to the SuperDeckBreaker bot\'s add-deck command: http://drive.google.com/uc?export=view&id=' + newFile['id'])
