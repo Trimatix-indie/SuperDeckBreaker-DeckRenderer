@@ -28,9 +28,11 @@ class ProgressTracker:
 
     def renderCard(self, elem):
         make_card(*elem)
-        self.soFar += 1
-        self.percent = round((self.soFar / self.totalCards) * 100, 2)
-        print(str(self.percent) + "% done")
+        if self.totalCards > 9:
+            self.soFar += 1
+            if (self.soFar / self.totalCards) * 100 >= self.percent + 5:
+                self.percent = (self.soFar / self.totalCards) * 100
+                print(str(self.percent) + "% done")
 
     def reset(self):
         self.soFar = 0
