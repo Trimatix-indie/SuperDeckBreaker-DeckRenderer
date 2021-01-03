@@ -105,6 +105,8 @@ def make_card(
     elif isinstance(card_text, str):
         card_text = card_text.replace("\\n", "\n")
 
+    rawText = card_text
+
     # Wrapping
     card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
 
@@ -158,8 +160,8 @@ def make_card(
                 progress.meta_dict[expansion] = {colour: [] for colour in COLOURS}
             
             if card_type == COLOURS[0]:
-                progress.meta_dict[expansion][card_type].append({"text": card_text,
+                progress.meta_dict[expansion][card_type].append({"text": rawText,
                                                         'url': requests.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
             elif card_type == COLOURS[1]:
-                progress.meta_dict[expansion][card_type].append({"text": card_text, "requiredWhiteCards": card_text.count("_"),
+                progress.meta_dict[expansion][card_type].append({"text": rawText, "requiredWhiteCards": rawText.count("_"),
                                                         'url': requests.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
