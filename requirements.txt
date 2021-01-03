@@ -1,3 +1,4 @@
 gspread
 psutil
 pillow
+aiohttp[speedups]
