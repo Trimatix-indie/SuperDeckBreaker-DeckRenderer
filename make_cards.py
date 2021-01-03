@@ -25,10 +25,6 @@ class ProgressTracker:
         self.percent = 0
 
     def renderCard(self, elem):
-        if elem[-2] is None:
-            gauth = GoogleAuth()
-            gauth.credentials = GoogleCredentials.get_application_default()
-            elem[-2] = GoogleDrive(gauth)
         make_card(*elem)
         self.soFar += 1
         self.percent = round((self.soFar / self.totalCards) * 100, 2)
@@ -90,8 +86,6 @@ def render_all(gameData):
 
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
             totalCards = len(expansions[expansion_name][colour])
-            if drive is None:
-                drive = GoogleDrive(gauth)
 
             if colour != currentColour:
                 colourDir = drive.CreateFile({'title' : colour, 'mimeType' : 'application/vnd.google-apps.folder', 'parents': [{'id' : expansionDir['id']}]})
@@ -122,7 +116,7 @@ def render_all(gameData):
             card_path(colour, "Back" + colour, root_dir=True),
             show_small=False,
             card_type=colour,
-            
+
         )
 
 
