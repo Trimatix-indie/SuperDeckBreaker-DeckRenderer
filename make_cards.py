@@ -31,7 +31,7 @@ class ProgressTracker:
         if self.totalCards > 9:
             self.soFar += 1
             if (self.soFar / self.totalCards) * 100 >= self.percent + 5:
-                self.percent = (self.soFar / self.totalCards) * 100
+                self.percent = int((self.soFar / self.totalCards) * 100)
                 print(str(self.percent) + "% done")
 
     def reset(self):
