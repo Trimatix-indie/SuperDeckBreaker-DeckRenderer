@@ -123,7 +123,8 @@ def render_all(gameData):
             show_small=False,
             card_type=colour,
             progress=progress,
-            back=True
+            back=True,
+            drive=drive
         )
 
 
