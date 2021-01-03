@@ -67,6 +67,7 @@ def render_all(gameData):
 
     if deckFolder is not None:
         deckFolder.Trash()
+        uploadFile(deckFolder)
 
     deckFolder = drive.CreateFile({'title' : deck_name, 'mimeType' : 'application/vnd.google-apps.folder', 'parents': [{'id' : sdbFolder['id']}]})
     uploadFile(deckFolder)
