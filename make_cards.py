@@ -135,7 +135,6 @@ def render_all(gameData):
     newFile = None
     file_list = drive.ListFile({'q': "'" + sdbFolder['id'] + "' in parents and trashed=false"}).GetList()
     for possibleFile in file_list:
-        print("MIMETYPE",possibleFile["mimeType"])
         if possibleFile["title"] == deck_name and possibleFile["mimeType"] == 'application/json':
             newFile = possibleFile
             break
