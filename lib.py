@@ -178,11 +178,11 @@ def make_card(
     # Save it
     current_img.save(file_name)
 
-    newFile = drive.CreateFile(metadata={'parents' : [{'id' : colourDir['id']}]})
-    newFile.SetContentFile(file_name)
-    uploadFile(newFile)
-
     if meta_dict is not None:
+        newFile = drive.CreateFile(metadata={'parents' : [{'id' : colourDir['id']}]})
+        newFile.SetContentFile(file_name)
+        uploadFile(newFile)
+
         if expansion not in meta_dict:
             meta_dict[expansion] = {colour: [] for colour in COLOURS}
         
