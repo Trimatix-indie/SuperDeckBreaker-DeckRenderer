@@ -156,12 +156,12 @@ def make_card(
             newFile.SetContentFile(file_name)
             uploadFile(newFile)
 
-            if expansion not in progress.meta_dict:
-                progress.meta_dict[expansion] = {colour: [] for colour in COLOURS}
+            if expansion not in progress.meta_dict["expansions"]:
+                progress.meta_dict["expansions"][expansion] = {colour: [] for colour in COLOURS}
             
             if card_type == COLOURS[0]:
-                progress.meta_dict[expansion][card_type].append({"text": rawText,
+                progress.meta_dict["expansions"][expansion][card_type].append({"text": rawText,
                                                         'url': requests.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
             elif card_type == COLOURS[1]:
-                progress.meta_dict[expansion][card_type].append({"text": rawText, "requiredWhiteCards": rawText.count("_"),
+                progress.meta_dict["expansions"][expansion][card_type].append({"text": rawText, "requiredWhiteCards": rawText.count("_"),
                                                         'url': requests.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})

@@ -23,7 +23,7 @@ class ProgressTracker:
         self.soFar = 0
         self.totalCards = totalCards
         self.percent = 0
-        self.meta_dict = {}
+        self.meta_dict = {"expansions":{}}
         self.deckFolder = None
 
     def renderCard(self, elem):
@@ -129,6 +129,19 @@ def render_all(gameData):
             drive=drive
         )
 
+
+    progress.meta_dict["deck_name"] = deck_name
+
+    newFile = None
+    file_list = drive.ListFile({'q': "'" + sdbFolder['id'] + "' in parents and trashed=false"}).GetList()
+    for possibleFile in file_list:
+        print("MIMETYPE",possibleFile["mimeType"])
+        if possibleFile["title"] == deck_name and possibleFile["mimeType"] == 'application/vnd.google-apps.file':
+            newFile = possibleFile
+            break
+
+    if newFile is not None:
+        newFile.Trash()
 
     newFile = drive.CreateFile(metadata={'parents' : [{'id' : sdbFolder['id']}]})
     with open(deck_name + ".json", "w") as f:
