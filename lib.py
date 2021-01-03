@@ -1,8 +1,18 @@
 import math
 import os
 import textwrap
+from urllib import request
 
 from PIL import Image, ImageDraw, ImageFont
+
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive, GoogleDriveFileList
+from googleapiclient.errors import HttpError
+from pydrive.files import ApiRequestError
+import time
+
+from os import listdir
+from os.path import isfile, join
 
 # Card options
 CARD_SCALE = 200
@@ -49,15 +59,31 @@ def card_path(card_type, num, expansion=None, build=False, root_dir=False):
     return os.path.join(folder, f"card{num}.png")
 
 
+def uploadFile(f):
+    currentSleep = 2
+    for i in range(5):
+        try:
+            f.Upload()
+        except (HttpError, ApiRequestError):
+            time.sleep(currentSleep)
+            currentSleep += 1
+        else:
+            return
+    raise TimeoutError("Unable to upload file within 5 retries")
+
+
 def make_card(
         card_text,
         file_name,
         expansion="",
-        card_type="white",
+        card_type=COLOURS[0],
         show_small=True,
-        game_name=""
+        game_name="",
+        meta_dict=None,
+        drive=None,
+        colourDir=None
 ):
-    if card_type == "white":
+    if card_type == COLOURS[0]:
         text_col = BLACK
         back_col = WHITE
     else:
@@ -106,3 +132,18 @@ def make_card(
 
     # Save it
     current_img.save(file_name)
+
+    newFile = drive.CreateFile(metadata={'parents' : [{'id' : colourDir['id']}]})
+    newFile.SetContentFile(file_name)
+    uploadFile(newFile)
+
+    if meta_dict is not None:
+        if expansion not in meta_dict:
+            meta_dict[expansion] = {colour: [] for colour in COLOURS}
+        
+        if card_type == COLOURS[0]:
+            meta_dict[expansion][card_type].append({"text": card_text,
+                                                    'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
+        elif card_type == COLOURS[1]:
+            meta_dict[expansion][card_type].append({"text": card_text, "requiredWhiteCards": card_text.count("_"),
+                                                    'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
