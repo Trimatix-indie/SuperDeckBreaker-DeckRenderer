@@ -32,9 +32,8 @@ class ProgressTracker:
         make_card(*elem)
         if self.totalCards > 9:
             self.soFar += 1
-            if (self.soFar / self.totalCards) * 100 >= self.percent + 5:
-                self.percent += 5
-                print(str(self.percent) + "% done")
+            self.percent = round((self.soFar / self.totalCards) * 100, 2)
+            print(str(self.percent) + "% done")
 
 
 
@@ -88,10 +87,10 @@ def render_all(gameData):
         print("Uploading expansion: " + expansion_name)
         # Format and Write the cards
         currentColour = ""
-        totalCards = sum(len(expansions[expansion_name][col]) for col in COLOURS)
         progress = None
 
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
+            totalCards = len(expansions[expansion_name][colour])
             if colour != currentColour:
                 colourDir = drive.CreateFile({'title' : colour, 'mimeType' : 'application/vnd.google-apps.folder', 'parents': [{'id' : expansionDir['id']}]})
                 uploadFile(colourDir)
