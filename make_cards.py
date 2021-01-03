@@ -23,12 +23,18 @@ class ProgressTracker:
         self.soFar = 0
         self.totalCards = totalCards
         self.percent = 0
+        self.meta_dict = {}
+        self.deckFolder = None
 
     def renderCard(self, elem):
         make_card(*elem)
         self.soFar += 1
         self.percent = round((self.soFar / self.totalCards) * 100, 2)
         print(str(self.percent) + "% done")
+
+    def reset(self):
+        self.soFar = 0
+        self.percent = 0
 
 
 
@@ -74,24 +80,24 @@ def render_all(gameData):
     except FileNotFoundError:
         pass
 
-    meta_dict = {}
-
     for expansion_name in expansions:
         expansionDir = drive.CreateFile({'title' : expansion_name, 'mimeType' : 'application/vnd.google-apps.folder', 'parents': [{'id' : deckFolder['id']}]})
         uploadFile(expansionDir)
         print("Uploading expansion: " + expansion_name)
         # Format and Write the cards
         currentColour = ""
-        progress = None
+        progress = ProgressTracker(0)
+        progress.deckFolder = deckFolder
 
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
-            totalCards = len(expansions[expansion_name][colour])
+            progress.totalCards = len(expansions[expansion_name][colour])
+            progress.reset()
 
             if colour != currentColour:
                 colourDir = drive.CreateFile({'title' : colour, 'mimeType' : 'application/vnd.google-apps.folder', 'parents': [{'id' : expansionDir['id']}]})
                 uploadFile(colourDir)
                 print("Uploading " + colour + " cards")
-                progress = ProgressTracker(totalCards)
+                progress.reset()
 
             with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
                 executor.map(
@@ -103,7 +109,7 @@ def render_all(gameData):
                         colour,
                         True,
                         deck_name,
-                        meta_dict,
+                        progress,
                         drive,
                         colourDir
                     ) for c in enumerate(cards)],
@@ -116,13 +122,14 @@ def render_all(gameData):
             card_path(colour, "Back" + colour, root_dir=True),
             show_small=False,
             card_type=colour,
-
+            progress=progress
+            back=True
         )
 
 
     newFile = drive.CreateFile(metadata={'parents' : [{'id' : sdbFolder['id']}]})
     with open(deck_name + ".json", "w") as f:
-        f.write(json.dumps(meta_dict))
+        f.write(json.dumps(progress.meta_dict))
     newFile.SetContentFile(deck_name + ".json")
     uploadFile(newFile)
     print('Here\'s your deck url! Give this to the SuperDeckBreaker bot\'s add-deck command: http://drive.google.com/uc?export=view&id=' + newFile['id'])

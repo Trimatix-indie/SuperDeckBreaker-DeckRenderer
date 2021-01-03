@@ -80,9 +80,10 @@ def make_card(
         card_type=COLOURS[0],
         show_small=True,
         game_name="",
-        meta_dict=None,
+        progress=None,
         drive=None,
-        colourDir=None
+        colourDir=None,
+        back=False
 ):
     if card_type == COLOURS[0]:
         text_col = BLACK
@@ -140,17 +141,24 @@ def make_card(
     # Save it
     current_img.save(file_name)
 
-    if meta_dict is not None:
-        newFile = drive.CreateFile(metadata={'parents' : [{'id' : colourDir['id']}]})
-        newFile.SetContentFile(file_name)
-        uploadFile(newFile)
-
-        if expansion not in meta_dict:
-            meta_dict[expansion] = {colour: [] for colour in COLOURS}
+    if progress is not None:
+        if back:
+            newFile = drive.CreateFile(metadata={'parents' : [{'id' : progress.deckFolder['id']}]})
+            newFile.SetContentFile(file_name)
+            uploadFile(newFile)
+            progress.meta_dict[card_type + "_back"] = request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url
         
-        if card_type == COLOURS[0]:
-            meta_dict[expansion][card_type].append({"text": card_text,
-                                                    'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
-        elif card_type == COLOURS[1]:
-            meta_dict[expansion][card_type].append({"text": card_text, "requiredWhiteCards": card_text.count("_"),
-                                                    'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
+        else:
+            newFile = drive.CreateFile(metadata={'parents' : [{'id' : colourDir['id']}]})
+            newFile.SetContentFile(file_name)
+            uploadFile(newFile)
+
+            if expansion not in progress.meta_dict:
+                progress.meta_dict[expansion] = {colour: [] for colour in COLOURS}
+            
+            if card_type == COLOURS[0]:
+                progress.meta_dict[expansion][card_type].append({"text": card_text,
+                                                        'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
+            elif card_type == COLOURS[1]:
+                progress.meta_dict[expansion][card_type].append({"text": card_text, "requiredWhiteCards": card_text.count("_"),
+                                                        'url': request.get('http://drive.google.com/uc?export=view&id=' + newFile['id']).url})
