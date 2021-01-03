@@ -153,4 +153,5 @@ def render_all(gameData):
                             'value': 'anyone',
                             'role': 'reader'})
 
-    print('Here\'s your deck url! Give this to the SuperDeckBreaker bot\'s add-deck command: http://drive.google.com/uc?export=view&id=' + newFile['id'])
+    print('Here\'s your deck url! Give this to the SuperDeckBreaker bot\'s add-deck command: http://drive.google.com/uc?export=download&id=' + newFile['id'])
+    
