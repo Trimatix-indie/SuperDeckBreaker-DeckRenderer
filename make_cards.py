@@ -25,6 +25,10 @@ class ProgressTracker:
         self.percent = 0
 
     def renderCard(self, elem):
+        if elem[-2] is None:
+            gauth = GoogleAuth()
+            gauth.credentials = GoogleCredentials.get_application_default()
+            elem[-2] = GoogleDrive(gauth)
         make_card(*elem)
         if self.totalCards > 9:
             self.soFar += 1
@@ -93,6 +97,9 @@ def render_all(gameData):
                 uploadFile(colourDir)
                 print("Uploading " + colour + " cards")
                 progress = ProgressTracker(totalCards)
+
+            if drive is None:
+                drive = GoogleDrive(gauth)
 
             with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
                 executor.map(
