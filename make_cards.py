@@ -6,7 +6,7 @@ import json
 import time
 import psutil
 import asyncio
-from lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card
+from .lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card
 import os
 from discord import File
 
@@ -26,10 +26,10 @@ def _render_cards(messageID, gameData):
     def saveCard(elem):
         make_card(*elem)
         if elem[2] not in cardData["expansions"]:
-            cardData["expansions"][elem[2]] = []
-        cardData["expansions"][elem[2]].append({"text": elem[0], "url":elem[1]})
+            cardData["expansions"][elem[2]] = {col: [] for col in COLOURS}
+        cardData["expansions"][elem[2]][elem[3]].append({"text": elem[0], "url":elem[1]})
         if elem[3] == COLOURS[1]:
-            cardData["expansions"][elem[2]][-1]["requiredWhiteCards"] = elem[0].count("_")
+            cardData["expansions"][elem[2]][elem[3]][-1]["requiredWhiteCards"] = elem[0].count("_")
 
     for expansion_name in expansions:
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
@@ -66,16 +66,17 @@ async def render_all(storageChannel, callingMsg, gameData):
     cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, callingMsg.id, gameData)
 
     for expansion in cardData["expansions"]:
-        for card in cardData["expansions"][expansion]:
-            cardPath = card["url"]
-            with open(cardPath, "rb") as f:
-                cardMsg = await storageChannel.send(callingMsg.author.id + "@" + callingMsg.guild.id + "/" + callingMsg.channel.id + "\n" + gameData["title"] + " -> " + expansion + " -> " + card["text"], file=File(f))
-                card["url"] = cardMsg.attachments[0].url
+        for colour in cardData["expansions"][expansion]:
+            for card in cardData["expansions"][expansion][colour]:
+                cardPath = card["url"]
+                with open(cardPath, "rb") as f:
+                    cardMsg = await storageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + gameData["title"] + " -> " + expansion + " -> " + card["text"], file=File(f))
+                    card["url"] = cardMsg.attachments[0].url
 
     for colour in COLOURS:
         cardPath = cardData[colour + "_back"]
         with open(cardPath, "rb") as f:
-            cardMsg = await storageChannel.send(callingMsg.author.id + "@" + callingMsg.guild.id + "/" + callingMsg.channel.id + "\n" + gameData["title"] + " -> " + colour + "_back", file=File(f))
+            cardMsg = await storageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + gameData["title"] + " -> " + colour + "_back", file=File(f))
             cardData[colour + "_back"] = cardMsg.attachments[0].url
 
     try:
