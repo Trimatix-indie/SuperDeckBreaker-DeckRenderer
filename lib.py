@@ -1,14 +1,10 @@
 import math
 import os
 import textwrap
+import aiohttp
 
 from PIL import Image, ImageDraw, ImageFont
 
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive, GoogleDriveFileList
-from googleapiclient.errors import HttpError
-from pydrive.files import ApiRequestError
-from oauth2client.client import GoogleCredentials
 import time
 
 from os import listdir
@@ -43,10 +39,10 @@ WHITE = (255, 255, 255)
 existing_folders = dict()
 
 
-def card_path(card_type, num, expansion=None, build=False, root_dir=False):
-    "Returns {CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>.png"
+def card_path(message_id, card_type, num, expansion=None, build=False, root_dir=False):
+    "Returns message_id/{CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>.png"
     global existing_folders
-    folder = BUILD_DIR if build else CARDS_DIR
+    folder = str(message_id) + os.sep + (BUILD_DIR if build else CARDS_DIR)
 
     if root_dir:
         return os.path.join(folder, f"card{num}.png")
@@ -59,19 +55,6 @@ def card_path(card_type, num, expansion=None, build=False, root_dir=False):
     return os.path.join(folder, f"card{num}.png")
 
 
-def uploadFile(f):
-    currentSleep = 2
-    for i in range(5):
-        try:
-            f.Upload()
-        except (HttpError, ApiRequestError):
-            time.sleep(currentSleep)
-            currentSleep += 1
-        else:
-            return
-    raise TimeoutError("Unable to upload file within 5 retries")
-
-
 def make_card(
         card_text,
         file_name,
@@ -79,10 +62,6 @@ def make_card(
         card_type=COLOURS[0],
         show_small=True,
         game_name="",
-        progress=None,
-        drive=None,
-        colourDir=None,
-        back=False
 ):
     if card_type == COLOURS[0]:
         text_col = BLACK
@@ -141,25 +120,3 @@ def make_card(
 
     # Save it
     current_img.save(file_name)
-
-    if progress is not None:
-        if back:
-            newFile = drive.CreateFile(metadata={'parents' : [{'id' : progress.deckFolder['id']}]})
-            newFile.SetContentFile(file_name)
-            uploadFile(newFile)
-            progress.meta_dict[card_type + "_back"] = 'https://drive.google.com/uc?export=view&id=' + newFile['id']
-        
-        else:
-            newFile = drive.CreateFile(metadata={'parents' : [{'id' : colourDir['id']}]})
-            newFile.SetContentFile(file_name)
-            uploadFile(newFile)
-
-            if expansion not in progress.meta_dict["expansions"]:
-                progress.meta_dict["expansions"][expansion] = {colour: [] for colour in COLOURS}
-            
-            if card_type == COLOURS[0]:
-                progress.meta_dict["expansions"][expansion][card_type].append({"text": rawText,
-                                                        'url': 'https://drive.google.com/uc?export=view&id=' + newFile['id']})
-            elif card_type == COLOURS[1]:
-                progress.meta_dict["expansions"][expansion][card_type].append({"text": rawText, "requiredWhiteCards": rawText.count("_"),
-                                                        'url': 'https://drive.google.com/uc?export=view&id=' + newFile['id']})
