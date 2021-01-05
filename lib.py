@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import time
 
-from os import listdir
+from os import listdir, getcwd, sep
 from os.path import isfile, join
 
 # Card options
@@ -19,7 +19,7 @@ MARGINS = (150, 50, 50, 50)
 # Chars to wrap at
 TEXT_WRAP = 16
 # otf/ttf file to use for the font
-FONT_TTF = "HelveticaNeueLTStd-Bd.otf"
+FONT_TTF = getcwd() + sep + "bot" + sep + "cardRenderer" + sep + "HelveticaNeueLTStd-Bd.otf"
 # Folders for the in-progress cards and built templates
 CARDS_DIR = "cards"
 BUILD_DIR = "build"
@@ -76,16 +76,17 @@ def make_card(
         return
 
     if isinstance(card_text, list):
-        for lineNum in range(len(card_text)):
-            card_text[lineNum] = card_text[lineNum].replace("\\n", "\n")
         card_text = "".join(card_text)
-    elif isinstance(card_text, str):
-        card_text = card_text.replace("\\n", "\n")
 
     rawText = card_text
 
     # Wrapping
     card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
+    splitting_text = []
+    for line in card_text:
+        for splitLine in line.split("\\n"):
+            splitting_text.append(splitLine)
+    card_text = splitting_text
 
     # Initialise image
     current_img = Image.new("RGB", CARD_SIZE, color=back_col)
