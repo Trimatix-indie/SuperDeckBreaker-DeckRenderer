@@ -35,24 +35,25 @@ CARD_SIZE = (CARD_SCALE * 5, CARD_SCALE * 7)
 COLOURS = ("white", "black")
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+IMG_FORMAT = "jpg"
 
 existing_folders = dict()
 
 
 def card_path(message_id, card_type, num, expansion=None, build=False, root_dir=False):
-    "Returns message_id/{CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>.png"
+    "Returns message_id/{CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>." + IMG_FORMAT
     global existing_folders
     folder = str(message_id) + os.sep + (BUILD_DIR if build else CARDS_DIR)
 
     if root_dir:
-        return os.path.join(folder, f"card{num}.png")
+        return os.path.join(folder, f"card{num}." + IMG_FORMAT)
     if expansion is not None:
         folder = os.path.join(folder, expansion.replace(" ", ""))
     folder = os.path.join(folder, card_type)
     if not (existing_folders.get(folder) or os.path.isdir(folder)):
         os.makedirs(folder)
         existing_folders[folder] = True
-    return os.path.join(folder, f"card{num}.png")
+    return os.path.join(folder, f"card{num}." + IMG_FORMAT)
 
 
 def make_card(
