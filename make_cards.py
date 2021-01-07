@@ -6,13 +6,14 @@ import json
 import time
 import psutil
 import asyncio
-from .lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card
+from .lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card, CardFontConfig
 import os
 from discord import File
 
 
-def _render_cards(messageID, gameData):
+def _render_cards(messageID, gameData, cardFont):
     expansions, deck_name = gameData["expansions"], gameData["title"]
+    fonts = CardFontConfig(cardFont)
                             
     # Clear results directories
     try:
@@ -39,10 +40,11 @@ def _render_cards(messageID, gameData):
                     [(
                         c[1],
                         card_path(messageID, colour, c[0], expansion=expansion_name),
+                        fonts,
                         expansion_name,
                         colour,
                         True,
-                        deck_name,
+                        deck_name
                     ) for c in enumerate(cards)],
                 )
 
@@ -59,11 +61,11 @@ def _render_cards(messageID, gameData):
     return cardData
 
 
-async def render_all(storageChannel, callingMsg, gameData):
+async def render_all(storageChannel, callingMsg, gameData, cardFont):
     expansions, deck_name = gameData["expansions"], gameData["title"]
 
     eventloop = asyncio.get_event_loop()
-    cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, callingMsg.id, gameData)
+    cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, callingMsg.id, gameData, cardFont)
 
     for expansion in cardData["expansions"]:
         for colour in cardData["expansions"][expansion]:

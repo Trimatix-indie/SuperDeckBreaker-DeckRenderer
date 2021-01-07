@@ -18,18 +18,15 @@ TITLE_TEXT_SCALE = 40
 MARGINS = (150, 50, 50, 50)
 # Chars to wrap at
 TEXT_WRAP = 16
-# otf/ttf file to use for the font
-FONT_TTF = getcwd() + sep + "bot" + sep + "cardRenderer" + sep + "HelveticaNeueLTStd-Bd.otf"
 # Folders for the in-progress cards and built templates
 CARDS_DIR = "cards"
 BUILD_DIR = "build"
 
 # Program constants
 # Font
-CONTENT_FONT = ImageFont.truetype(FONT_TTF, size=CONTENT_TEXT_SCALE)
 CONTENT_TEXT_HEIGHT = math.floor(CONTENT_TEXT_SCALE * 1.2)
-TITLE_FONT = ImageFont.truetype(FONT_TTF, size=TITLE_TEXT_SCALE)
 TITLE_TEXT_HEIGHT = math.floor(TITLE_TEXT_SCALE * 1.2)
+
 # Other
 CARD_SIZE = (CARD_SCALE * 5, CARD_SCALE * 7)
 COLOURS = ("white", "black")
@@ -37,6 +34,13 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 existing_folders = dict()
+
+
+class CardFontConfig:
+    def __init__(self, cardFont):
+        self.cardFont = cardFont
+        self.contentFont = ImageFont.truetype(cardFont, size=CONTENT_TEXT_SCALE)
+        self.titleFont = ImageFont.truetype(cardFont, size=TITLE_TEXT_SCALE)
 
 
 def card_path(message_id, card_type, num, expansion=None, build=False, root_dir=False):
@@ -58,6 +62,7 @@ def card_path(message_id, card_type, num, expansion=None, build=False, root_dir=
 def make_card(
         card_text,
         file_name,
+        fonts,
         expansion="",
         card_type=COLOURS[0],
         show_small=True,
@@ -98,7 +103,7 @@ def make_card(
         drawn.text(
             pos,
             line,
-            font=CONTENT_FONT,
+            font=fonts.contentFont,
             fill=text_col,
         )
 
@@ -107,7 +112,7 @@ def make_card(
         drawn.text(
             (MARGINS[2], MARGINS[1]),
             game_name,
-            font=TITLE_FONT,
+            font=fonts.titleFont,
             fill=text_col,
         )
 
@@ -115,7 +120,7 @@ def make_card(
         drawn.text(
             (MARGINS[2], CARD_SIZE[1] - MARGINS[3] - TITLE_TEXT_HEIGHT),
             expansion,
-            font=TITLE_FONT,
+            font=fonts.titleFont,
             fill=text_col,
         )
 
