@@ -33,7 +33,7 @@ def _render_cards(messageID, gameData):
 
     for expansion_name in expansions:
         for colour, cards in zip(COLOURS, (expansions[expansion_name]["white"], expansions[expansion_name]["black"])):
-            with futures.ThreadPoolExecutor(psutil.cpu_count()) as executor:
+            with futures.ThreadPoolExecutor(len(psutil.Process().cpu_affinity())) as executor:
                 executor.map(
                     lambda elem: saveCard(elem),
                     [(
