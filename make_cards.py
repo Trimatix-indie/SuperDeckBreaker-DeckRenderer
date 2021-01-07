@@ -86,4 +86,7 @@ async def render_all(storageChannel, callingMsg, gameData, cardFont):
     except FileNotFoundError:
         pass
 
+    cardData["white_count"] = sum(len(cardData["expansions"][expansion]["white"]) for expansion in cardData["expansions"] if "white" in cardData["expansions"][expansion])
+    cardData["black_count"] = sum(len(cardData["expansions"][expansion]["black"]) for expansion in cardData["expansions"] if "black" in cardData["expansions"][expansion])
+
     return cardData
