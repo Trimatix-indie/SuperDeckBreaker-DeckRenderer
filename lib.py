@@ -2,6 +2,7 @@ import math
 import os
 import textwrap
 import aiohttp
+import shutil
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -19,7 +20,7 @@ MARGINS = (150, 50, 50, 50)
 # Chars to wrap at
 TEXT_WRAP = 16
 # Folders for the in-progress cards and built templates
-CARDS_DIR = "cards"
+CARDS_DIR = ""
 BUILD_DIR = "build"
 
 # Program constants
@@ -44,10 +45,21 @@ class CardFontConfig:
         self.titleFont = ImageFont.truetype(cardFont, size=TITLE_TEXT_SCALE)
 
 
-def card_path(message_id, card_type, num, expansion=None, build=False, root_dir=False):
-    "Returns message_id/{CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>." + IMG_FORMAT
+def deck_path(decks_dir, guild_id, deck_name):
+    return decks_dir + os.sep + str(guild_id) + os.sep + deck_name
+
+
+def clear_deck_path(decks_dir, guild_id, deck_name):
+    try:
+        shutil.rmtree(deck_path(decks_dir, guild_id, deck_name))
+    except FileNotFoundError:
+        pass
+
+
+def card_path(decks_dir, guild_id, deck_name, card_type, num, expansion=None, build=False, root_dir=False):
+    "Returns deck_path/{CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>." + IMG_FORMAT
     global existing_folders
-    folder = str(message_id) + os.sep + (BUILD_DIR if build else CARDS_DIR)
+    folder = deck_path(decks_dir, guild_id, deck_name) + os.sep + (BUILD_DIR if build else CARDS_DIR)
 
     if root_dir:
         return os.path.join(folder, f"card{num}." + IMG_FORMAT)
@@ -58,6 +70,10 @@ def card_path(message_id, card_type, num, expansion=None, build=False, root_dir=
         os.makedirs(folder)
         existing_folders[folder] = True
     return os.path.join(folder, f"card{num}." + IMG_FORMAT)
+
+
+def local_file_url(card_path):
+    return "https://cahbot.edjoduf.co.uk/" + card_path.lstrip("/" + os.sep).replace(os.sep, "/")
 
 
 def make_card(
