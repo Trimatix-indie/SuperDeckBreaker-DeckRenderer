@@ -3,6 +3,7 @@ import os
 import textwrap
 import aiohttp
 import shutil
+import urllib
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -34,6 +35,8 @@ COLOURS = ("white", "black")
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 IMG_FORMAT = "jpg"
+BASE_URL = "cahbot.edjoduf.co.uk/"
+PROTOCOL = "http"
 
 existing_folders = dict()
 
@@ -46,7 +49,7 @@ class CardFontConfig:
 
 
 def deck_path(decks_dir, guild_id, deck_name):
-    return decks_dir + os.sep + str(guild_id) + os.sep + deck_name
+    return decks_dir + os.sep + str(guild_id) + os.sep + str(hash(deck_name))
 
 
 def clear_deck_path(decks_dir, guild_id, deck_name):
@@ -57,14 +60,14 @@ def clear_deck_path(decks_dir, guild_id, deck_name):
 
 
 def card_path(decks_dir, guild_id, deck_name, card_type, num, expansion=None, build=False, root_dir=False):
-    "Returns deck_path/{CARDS_DIR|BUILD_DIR}/[expansion]/card_type/card<num>." + IMG_FORMAT
+    "Returns deck_path/{CARDS_DIR|BUILD_DIR}/[hash(expansion)]/card_type/card<num>." + IMG_FORMAT
     global existing_folders
     folder = deck_path(decks_dir, guild_id, deck_name) + os.sep + (BUILD_DIR if build else CARDS_DIR)
 
     if root_dir:
         return os.path.join(folder, f"card{num}." + IMG_FORMAT)
     if expansion is not None:
-        folder = os.path.join(folder, expansion.replace(" ", ""))
+        folder = os.path.join(folder, str(hash(expansion)))
     folder = os.path.join(folder, card_type)
     if not (existing_folders.get(folder) or os.path.isdir(folder)):
         os.makedirs(folder)
@@ -73,7 +76,7 @@ def card_path(decks_dir, guild_id, deck_name, card_type, num, expansion=None, bu
 
 
 def local_file_url(card_path):
-    return "https://cahbot.edjoduf.co.uk/" + card_path.lstrip("/" + os.sep).replace(os.sep, "/")
+    return PROTOCOL + "://" + urllib.parse.quote(BASE_URL + card_path.lstrip("/" + os.sep).replace(os.sep, "/"))
 
 
 def make_card(
