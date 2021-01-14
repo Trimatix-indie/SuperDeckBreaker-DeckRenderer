@@ -89,13 +89,13 @@ async def store_cards_discord(decksFolder, cardData, storageChannel, callingMsg)
     for expansion in cardData["expansions"]:
         for colour in cardData["expansions"][expansion]:
             for card in cardData["expansions"][expansion][colour]:
-                cardPath = card["url"]
+                cardPath = decksFolder + os.sep + card["url"]
                 with open(cardPath, "rb") as f:
                     cardMsg = await storageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + expansion + " -> " + card["text"], file=File(f))
                     card["url"] = cardMsg.attachments[0].url
 
     for colour in COLOURS:
-        cardPath = cardData[colour + "_back"]
+        cardPath = decksFolder + os.sep + cardData[colour + "_back"]
         with open(cardPath, "rb") as f:
             cardMsg = await storageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + colour + "_back", file=File(f))
             cardData[colour + "_back"] = cardMsg.attachments[0].url
@@ -104,6 +104,8 @@ async def store_cards_discord(decksFolder, cardData, storageChannel, callingMsg)
         clear_deck_path(decksFolder, callingMsg.guild.id, cardData["deck_name"])
     except FileNotFoundError:
         pass
+
+    return cardData
 
 
 def store_cards_local(cardData):
