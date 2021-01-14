@@ -42,10 +42,12 @@ existing_folders = dict()
 
 
 class CardFontConfig:
-    def __init__(self, cardFont):
+    def __init__(self, cardFont, contentFontSize=CONTENT_TEXT_SCALE, titleFontSize=TITLE_TEXT_SCALE):
         self.cardFont = cardFont
-        self.contentFont = ImageFont.truetype(cardFont, size=CONTENT_TEXT_SCALE)
-        self.titleFont = ImageFont.truetype(cardFont, size=TITLE_TEXT_SCALE)
+        self.contentFont = ImageFont.truetype(cardFont, size=contentFontSize)
+        self.titleFont = ImageFont.truetype(cardFont, size=titleFontSize)
+        self.contentFontHeight = math.floor(contentFontSize * 1.2)
+        self.titleFontHeight = math.floor(titleFontSize * 1.2)
 
 
 def deck_path(decks_dir, guild_id, deck_name):
@@ -101,7 +103,6 @@ def make_card(
 
     # Skip blank lines created by fucked formatting
     if card_text in ([""], "", []):
-        print("null card found: " + card_text)
         return
 
     if isinstance(card_text, list):
@@ -110,12 +111,11 @@ def make_card(
     rawText = card_text
 
     # Wrapping
-    card_text = textwrap.wrap(card_text, width=TEXT_WRAP)
-    splitting_text = []
-    for line in card_text:
-        for splitLine in line.split("\\n"):
-            splitting_text.append(splitLine)
-    card_text = splitting_text
+    splitting_text = card_text.split("\\n")
+    card_text = []
+    for line in splitting_text:
+        for newline in textwrap.wrap(line, width=TEXT_WRAP):
+            card_text.append(newline)
 
     # Initialise image
     current_img = Image.new("RGB", CARD_SIZE, color=back_col)
@@ -123,7 +123,7 @@ def make_card(
 
     # Add the main text
     for num, line in enumerate(card_text):
-        pos = (MARGINS[2], MARGINS[0] + (CONTENT_TEXT_HEIGHT * num))
+        pos = (MARGINS[2], MARGINS[0] + (fonts.contentFontHeight * num))
         drawn.text(
             pos,
             line,
@@ -142,7 +142,7 @@ def make_card(
 
         # Add the footer text
         drawn.text(
-            (MARGINS[2], CARD_SIZE[1] - MARGINS[3] - TITLE_TEXT_HEIGHT),
+            (MARGINS[2], CARD_SIZE[1] - MARGINS[3] - fonts.titleFontHeight),
             expansion,
             font=fonts.titleFont,
             fill=text_col,

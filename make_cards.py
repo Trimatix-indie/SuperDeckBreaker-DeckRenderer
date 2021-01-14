@@ -6,15 +6,15 @@ import json
 import time
 import psutil
 import asyncio
-from .lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card, CardFontConfig, deck_path, local_file_url, clear_deck_path
+from .lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card, CardFontConfig, deck_path, local_file_url, clear_deck_path, CONTENT_TEXT_SCALE, TITLE_TEXT_SCALE
 import os
 from discord import File
 import traceback
 
 
-def _render_cards(decksFolder, guildID, gameData, cardFont):
+def _render_cards(decksFolder, guildID, gameData, cardFont, fontSizes):
     expansions, deck_name = gameData["expansions"], gameData["title"]
-    fonts = CardFontConfig(cardFont)
+    fonts = CardFontConfig(cardFont, contentFontSize=fontSizes["content"], titleFontSize=fontSizes["title"])
     
     # Clear results directories
     try:
@@ -70,14 +70,14 @@ def _render_cards(decksFolder, guildID, gameData, cardFont):
     return cardData
 
 
-async def render_all(decksFolder, gameData, cardFont, guildID):
+async def render_all(decksFolder, gameData, cardFont, guildID, contentFontSize=CONTENT_TEXT_SCALE, titleFontSize=TITLE_TEXT_SCALE):
     deck_name = gameData["title"]
     deckDir = deck_path(decksFolder, guildID, deck_name)
     if os.path.isdir(deckDir) and os.listdir(deckDir):
         raise RuntimeError("deck directory already exists and is not empty: " + deckDir)
 
     eventloop = asyncio.get_event_loop()
-    cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, decksFolder, guildID, gameData, cardFont)
+    cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, decksFolder, guildID, gameData, cardFont, {"content": contentFontSize, "title": titleFontSize})
 
     cardData["white_count"] = sum(len(cardData["expansions"][expansion]["white"]) for expansion in cardData["expansions"] if "white" in cardData["expansions"][expansion])
     cardData["black_count"] = sum(len(cardData["expansions"][expansion]["black"]) for expansion in cardData["expansions"] if "black" in cardData["expansions"][expansion])
