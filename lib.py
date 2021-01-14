@@ -79,6 +79,10 @@ def local_file_url(card_path):
     return PROTOCOL + "://" + urllib.parse.quote(BASE_URL + card_path.lstrip("/" + os.sep).replace(os.sep, "/"))
 
 
+def url_to_local_path(url):
+    return os.path.normpath(url.split(BASE_URL)[1].lstrip("/"))
+
+
 def make_card(
         card_text,
         file_name,
