@@ -79,9 +79,6 @@ async def render_all(decksFolder, gameData, cardFont, guildID, contentFontSize=C
     eventloop = asyncio.get_event_loop()
     cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, decksFolder, guildID, gameData, cardFont, {"content": contentFontSize, "title": titleFontSize})
 
-    cardData["white_count"] = sum(len(cardData["expansions"][expansion]["white"]) for expansion in cardData["expansions"] if "white" in cardData["expansions"][expansion])
-    cardData["black_count"] = sum(len(cardData["expansions"][expansion]["black"]) for expansion in cardData["expansions"] if "black" in cardData["expansions"][expansion])
-
     return cardData
 
 
