@@ -38,8 +38,6 @@ IMG_FORMAT = "jpg"
 BASE_URL = "cahbot.edjoduf.co.uk/"
 PROTOCOL = "http"
 
-existing_folders = dict()
-
 
 class CardFontConfig:
     def __init__(self, cardFont, contentFontSize=CONTENT_TEXT_SCALE, titleFontSize=TITLE_TEXT_SCALE):
@@ -61,9 +59,8 @@ def clear_deck_path(decks_dir, guild_id, deck_name):
         pass
 
 
-def card_path(decks_dir, guild_id, deck_name, card_type, num, expansion=None, build=False, root_dir=False):
+def card_path(existing_folders, decks_dir, guild_id, deck_name, card_type, num, expansion=None, build=False, root_dir=False):
     "Returns deck_path/{CARDS_DIR|BUILD_DIR}/[hash(expansion)]/card_type/card<num>." + IMG_FORMAT
-    global existing_folders
     folder = deck_path(decks_dir, guild_id, deck_name) + os.sep + (BUILD_DIR if build else CARDS_DIR)
 
     if root_dir:

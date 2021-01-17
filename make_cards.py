@@ -12,7 +12,7 @@ from discord import File
 import traceback
 
 
-def _render_cards(decksFolder, guildID, gameData, cardFont, fontSizes):
+def _render_cards(existingFolders, decksFolder, guildID, gameData, cardFont, fontSizes):
     expansions, deck_name = gameData["expansions"], gameData["title"]
     fonts = CardFontConfig(cardFont, contentFontSize=fontSizes["content"], titleFontSize=fontSizes["title"])
     
@@ -47,7 +47,7 @@ def _render_cards(decksFolder, guildID, gameData, cardFont, fontSizes):
                     lambda elem: saveCard(elem),
                     [{
                         "card_text": c[1],
-                        "file_name": card_path(decksFolder, guildID, deck_name, colour, c[0], expansion=expansion_name),
+                        "file_name": card_path(existingFolders, decksFolder, guildID, deck_name, colour, c[0], expansion=expansion_name),
                         "fonts": fonts,
                         "expansion": expansion_name,
                         "card_type": colour,
@@ -60,12 +60,12 @@ def _render_cards(decksFolder, guildID, gameData, cardFont, fontSizes):
     for colour in COLOURS:
         make_card(
             deck_name,
-            card_path(decksFolder, guildID, deck_name, colour, "Back" + colour, root_dir=True),
+            card_path(existingFolders, decksFolder, guildID, deck_name, colour, "Back" + colour, root_dir=True),
             fonts,
             show_small=False,
             card_type=colour,
         )
-        cardData[colour + "_back"] = card_path("", guildID, deck_name, colour, "Back" + colour, root_dir=True)
+        cardData[colour + "_back"] = card_path(existingFolders, "", guildID, deck_name, colour, "Back" + colour, root_dir=True)
     
     return cardData
 
@@ -77,7 +77,8 @@ async def render_all(decksFolder, gameData, cardFont, guildID, contentFontSize=C
         raise RuntimeError("deck directory already exists and is not empty: " + deckDir)
 
     eventloop = asyncio.get_event_loop()
-    cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, decksFolder, guildID, gameData, cardFont, {"content": contentFontSize, "title": titleFontSize})
+    existingFolders = dict()
+    cardData = await eventloop.run_in_executor(ThreadPoolExecutor(), _render_cards, existingFolders, decksFolder, guildID, gameData, cardFont, {"content": contentFontSize, "title": titleFontSize})
 
     return cardData
 
