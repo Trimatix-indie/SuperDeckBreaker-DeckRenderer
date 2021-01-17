@@ -49,6 +49,8 @@ class CardFontConfig:
 
 
 def deck_path(decks_dir, guild_id, deck_name):
+    if type(deck_name) == int:
+        return decks_dir + os.sep + str(guild_id) + os.sep + str(deck_name)
     return decks_dir + os.sep + str(guild_id) + os.sep + str(hash(deck_name))
 
 
