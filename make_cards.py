@@ -84,19 +84,32 @@ async def render_all(decksFolder, gameData, cardFont, guildID, contentFontSize=C
 
 
 async def store_cards_discord(decksFolder, cardData, storageChannel, callingMsg):
+    cardUploaders = set()
+
+    async def uploadCard(card, cardPath, msgText):
+        with open(cardPath, "rb") as f:
+            cardMsg = await storageChannel.send(msgText, file=File(f))
+            card["url"] = cardMsg.attachments[0].url
+
+    def scheduleCardUpload(card, cardPath, msgText):
+        task = asyncio.ensure_future(uploadCard(card, cardPath, msgText))
+        cardUploaders.add(task)
+        task.add_done_callback(cardUploaders.remove)
+
     for expansion in cardData["expansions"]:
         for colour in cardData["expansions"][expansion]:
             for card in cardData["expansions"][expansion][colour]:
                 cardPath = decksFolder + os.sep + card["url"]
-                with open(cardPath, "rb") as f:
-                    cardMsg = await storageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + expansion + " -> " + card["text"], file=File(f))
-                    card["url"] = cardMsg.attachments[0].url
+                scheduleCardUpload(card, cardPath, str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + expansion + " -> " + card["text"])
 
     for colour in COLOURS:
         cardPath = decksFolder + os.sep + cardData[colour + "_back"]
         with open(cardPath, "rb") as f:
             cardMsg = await storageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + colour + "_back", file=File(f))
             cardData[colour + "_back"] = cardMsg.attachments[0].url
+
+    if cardUploaders:
+        await asyncio.wait(cardUploaders)
 
     try:
         clear_deck_path(decksFolder, callingMsg.guild.id, cardData["deck_name"])
