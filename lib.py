@@ -35,7 +35,7 @@ COLOURS = ("white", "black")
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 IMG_FORMAT = "jpg"
-BASE_URL = "cahbot.edjoduf.co.uk/"
+BASE_URL = "cahbot.edjoduf.co.uk:8081/"
 PROTOCOL = "http"
 
 
