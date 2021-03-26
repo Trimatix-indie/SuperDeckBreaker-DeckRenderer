@@ -77,7 +77,7 @@ def card_path(existing_folders, decks_dir, guild_id, deck_name, card_type, num, 
 
 
 def local_file_url(card_path):
-    return PROTOCOL + "://" + urllib.parse.quote(BASE_URL + card_path.lstrip("/" + os.sep).replace(os.sep, "/"))
+    return PROTOCOL + "://" + BASE_URL + urllib.parse.quote(card_path.lstrip("/" + os.sep).replace(os.sep, "/"))
 
 
 def url_to_local_path(url):
