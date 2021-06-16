@@ -149,3 +149,4 @@ def make_card(
 
     # Save it
     current_img.save(file_name)
+    current_img.close()
