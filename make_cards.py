@@ -95,7 +95,6 @@ async def store_cards_discord(decksFolder, cardData, storageChannel, callingMsg)
     def scheduleCardUpload(card, cardPath, msgText):
         task = asyncio.ensure_future(uploadCard(card, cardPath, msgText))
         cardUploaders.add(task)
-        task.add_done_callback(cardUploaders.remove)
 
     for expansion in cardData["expansions"]:
         for colour in cardData["expansions"][expansion]:
