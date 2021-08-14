@@ -6,7 +6,7 @@ import json
 import time
 import psutil
 import asyncio
-from .lib import BUILD_DIR, CARDS_DIR, COLOURS, card_path, make_card, CardFontConfig, deck_path, local_file_url, url_to_local_path, clear_deck_path, CONTENT_TEXT_SCALE, TITLE_TEXT_SCALE, IMG_FORMAT
+from .lib import BASE_URL, BUILD_DIR, CARDS_DIR, COLOURS, PROTOCOL, card_path, make_card, CardFontConfig, deck_path, local_file_url, url_to_local_path, clear_deck_path, CONTENT_TEXT_SCALE, TITLE_TEXT_SCALE, IMG_FORMAT
 import os
 from discord import File
 import traceback
@@ -219,9 +219,20 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                     raise ValueError("Unsupported cfg.cardStorageMethod: " + str(cardStorageMethod))
 
     for expansionName in [exp for exp in expansions if exp not in newExpansions]:
+        expansionDir = decksFolder + os.sep + str(guildID) + os.sep + str(deckID) + os.sep + str(hash(expansionName))
         for colour in oldMeta["expansions"][expansionName]:
             if colour == "dir":
                 continue
+
+            cardsToFix = [cardData for cardData in oldMeta["expansions"][expansionName][colour] if cardData["url"] == f"{PROTOCOL}://{BASE_URL}"]
+            if len(cardsToFix) > 0:
+                changeLog += "\nFixing " + str(len(cardsToFix)) + " empty " + colour + " card(s) in expansion: " + expansionName
+                for cardData in cardsToFix:
+                    imgPath = decksFolder + os.sep + url_to_local_path(cardData["url"])
+                    if os.path.isfile(imgPath):
+                        os.remove(imgPath)
+                    oldMeta["expansions"][expansionName][colour].remove(cardData)
+
             cardsToRemove = [cardData for cardData in oldMeta["expansions"][expansionName][colour] if cardData["text"] not in expansions[expansionName][colour]]
             if len(cardsToRemove) > 0:
                 changeLog += "\nRemoving " + str(len(cardsToRemove)) + " " + colour + " card(s) from expansion: " + expansionName
@@ -231,9 +242,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                         os.remove(imgPath)
                     oldMeta["expansions"][expansionName][colour].remove(cardData)
 
-            cardsToAdd = [cardText for cardText in expansions[expansionName][colour] if not oldMetaHasCard(expansionName, colour, cardText)]
-            if len(cardsToAdd) > 0:
-                changeLog += "\nAdding " + str(len(cardsToAdd)) + " " + colour + " card(s) to expansion: " + expansionName
+            async def fixOrAddCardsSet(allCards):
                 cardNumOffset = len(oldMeta["expansions"][expansionName][colour])
 
                 with futures.ThreadPoolExecutor(len(psutil.Process().cpu_affinity())) as executor:
@@ -247,10 +256,10 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                             "card_type": colour,
                             "show_small": True,
                             "game_name": deckName
-                        } for c in enumerate(cardsToAdd)],
+                        } for c in enumerate(allCards)],
                     )
 
-                for cardText in cardsToAdd:
+                for cardText in allCards:
                     card = None
                     for currentCard in oldMeta["expansions"][expansionName][colour]:
                         if currentCard["text"] == cardText:
@@ -260,6 +269,8 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                         raise RuntimeError("could not find render data for new card : " + cardText)
                     if cardStorageMethod == "local":
                         card["url"] = local_file_url(card["url"])
+                        # if card["url"] == f"{PROTOCOL}://{BASE_URL}":
+                        #     card["url"] = local_file_url((expansionDir + os.sep + colour + os.sep + "card" + str(c[0]) + "." + IMG_FORMAT))
                     elif cardStorageMethod == "discord":
                         cardPath = decksFolder + os.sep + card["url"]
                         with open(cardPath, "rb") as f:
@@ -267,5 +278,14 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                             card["url"] = cardMsg.attachments[0].url
                     else:
                         raise ValueError("Unsupported cfg.cardStorageMethod: " + str(cardStorageMethod))
+
+
+            cardsToAdd = [cardText for cardText in expansions[expansionName][colour] if not oldMetaHasCard(expansionName, colour, cardText)]
+            if len(cardsToAdd) > 0:
+                changeLog += "\nAdding " + str(len(cardsToAdd)) + " " + colour + " card(s) to expansion: " + expansionName
+                await fixOrAddCardsSet(cardsToAdd)
+
+            if len(cardsToFix) > 0:
+                await fixOrAddCardsSet(cardsToFix)
     
     return (oldMeta, changeLog)
