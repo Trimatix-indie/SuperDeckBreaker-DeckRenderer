@@ -32,7 +32,7 @@ def _render_cards(existingFolders, decksFolder, guildID, gameData, cardFont, fon
             if args["expansion"] not in cardData["expansions"]:
                 cardData["expansions"][args["expansion"]] = {col: [] for col in COLOURS}
 
-            cardData["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[1]})
+            cardData["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[1].lstrip(os.sep)})
 
             if args["card_type"] == COLOURS[1]:
                 cardData["expansions"][args["expansion"]][args["card_type"]][-1]["requiredWhiteCards"] = args["card_text"].count("_")
@@ -100,7 +100,7 @@ async def store_cards_discord(decksFolder, cardData, storageChannel, callingMsg)
     for expansion in cardData["expansions"]:
         for colour in cardData["expansions"][expansion]:
             for card in cardData["expansions"][expansion][colour]:
-                cardPath = os.path.join(decksFolder, card["url"])
+                cardPath = os.path.join(decksFolder, card["url"].lstrip(os.sep))
                 scheduleCardUpload(card, cardPath, str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + expansion + " -> " + card["text"])
 
     for colour in COLOURS:
@@ -111,6 +111,9 @@ async def store_cards_discord(decksFolder, cardData, storageChannel, callingMsg)
 
     if cardUploaders:
         await asyncio.wait(cardUploaders)
+    for t in cardUploaders:
+        if e := t.exception():
+            raise e
 
     try:
         clear_deck_path(decksFolder, callingMsg.guild.id, cardData["deck_name"])
@@ -165,7 +168,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                 if cardStorageMethod == "local":
                     oldMeta["expansions"][args["expansion"]]["dir"] = str(pathlib.Path(args["file_name"]).parent.parent)
 
-            oldMeta["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[min(1, len(args["file_name"].split(decksFolder)) - 1)]})
+            oldMeta["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[min(1, len(args["file_name"].split(decksFolder)) - 1).lstrip(os.sep)]})
 
             if args["card_type"] == COLOURS[1]:
                 oldMeta["expansions"][args["expansion"]][args["card_type"]][-1]["requiredWhiteCards"] = args["card_text"].count("_")
@@ -214,7 +217,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                 if cardStorageMethod == "local":
                     card["url"] = local_file_url(card["url"])
                 elif cardStorageMethod == "discord":
-                    cardPath = os.path.join(decksFolder, card["url"])
+                    cardPath = os.path.join(decksFolder, card["url"].lstrip(os.sep))
                     with open(cardPath, "rb") as f:
                         cardMsg = await cardStorageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + deckName + " -> " + expansionName + " -> " + card["text"], file=File(f))
                         card["url"] = cardMsg.attachments[0].url
@@ -270,7 +273,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                         # if card["url"] == f"{PROTOCOL}://{BASE_URL}":
                         #     card["url"] = local_file_url((os.path.join(expansionDir, colour, "card" + str(c[0]) + "." + IMG_FORMAT)))
                     elif cardStorageMethod == "discord":
-                        cardPath = os.path.join(decksFolder, card["url"])
+                        cardPath = os.path.join(decksFolder, card["url"].lstrip(os.sep))
                         with open(cardPath, "rb") as f:
                             cardMsg = await cardStorageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + deckName + " -> " + expansionName + " -> " + card["text"], file=File(f))
                             card["url"] = cardMsg.attachments[0].url
