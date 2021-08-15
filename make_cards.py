@@ -165,14 +165,14 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                 if cardStorageMethod == "local":
                     oldMeta["expansions"][args["expansion"]]["dir"] = str(pathlib.Path(args["file_name"]).parent.parent)
 
-            oldMeta["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[1]})
+            oldMeta["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[min(1, len(args["file_name"].split(decksFolder)) - 1)]})
 
             if args["card_type"] == COLOURS[1]:
                 oldMeta["expansions"][args["expansion"]][args["card_type"]][-1]["requiredWhiteCards"] = args["card_text"].count("_")
 
             # print("Added new meta to expansion " + args["expansion"] + ", colour " + args["card_type"] + ":\n",oldMeta["expansions"][args["expansion"]][args["card_type"]][-1])
             
-            args["file_name"] = args["file_name"].replace("/", os.sep)
+            args["file_name"] = os.path.join(decksFolder, args["file_name"].replace("/", os.sep).lstrip(os.sep))
             make_card(*args.values())
         except Exception as e:
             print("EXCEPT ON CARD TEXT",args["card_text"])
@@ -285,7 +285,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
 
             cardsToFix = [cardData for cardData in oldMeta["expansions"][expansionName][colour] if cardData["url"] == f"{PROTOCOL}://{BASE_URL}"]
             if len(cardsToFix) > 0:
-                changeLog[expansionName].append(f"{len(cardsToRemove)} empty {colour} card{'' if len(cardsToRemove)== 1 else 's'} fixed")
+                changeLog[expansionName].append(f"{len(cardsToFix)} empty {colour} card{'' if len(cardsToFix)== 1 else 's'} fixed")
                 for cardData in cardsToFix:
                     imgPath = os.path.join(decksFolder, url_to_local_path(cardData["url"]))
                     if os.path.isfile(imgPath):
