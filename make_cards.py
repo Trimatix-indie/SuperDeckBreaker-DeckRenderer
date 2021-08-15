@@ -4,6 +4,7 @@ from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
 import json
 import time
+from typing import Dict, List, Tuple
 import psutil
 import asyncio
 from .lib import BASE_URL, BUILD_DIR, CARDS_DIR, COLOURS, PROTOCOL, card_path, make_card, CardFontConfig, deck_path, local_file_url, url_to_local_path, clear_deck_path, CONTENT_TEXT_SCALE, TITLE_TEXT_SCALE, IMG_FORMAT
@@ -19,8 +20,8 @@ def _render_cards(existingFolders, decksFolder, guildID, gameData, cardFont, fon
     
     # Clear results directories
     try:
-        shutil.rmtree(deck_path(decksFolder, guildID, deck_name) + os.sep + CARDS_DIR)
-        shutil.rmtree(deck_path(decksFolder, guildID, deck_name) + os.sep + BUILD_DIR)
+        shutil.rmtree(os.path.join(deck_path(decksFolder, guildID, deck_name), CARDS_DIR))
+        shutil.rmtree(os.path.join(deck_path(decksFolder, guildID, deck_name), BUILD_DIR))
     except FileNotFoundError:
         pass
 
@@ -99,11 +100,11 @@ async def store_cards_discord(decksFolder, cardData, storageChannel, callingMsg)
     for expansion in cardData["expansions"]:
         for colour in cardData["expansions"][expansion]:
             for card in cardData["expansions"][expansion][colour]:
-                cardPath = decksFolder + os.sep + card["url"]
+                cardPath = os.path.join(decksFolder, card["url"])
                 scheduleCardUpload(card, cardPath, str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + expansion + " -> " + card["text"])
 
     for colour in COLOURS:
-        cardPath = decksFolder + os.sep + cardData[colour + "_back"]
+        cardPath = os.path.join(decksFolder, cardData[colour + "_back"])
         with open(cardPath, "rb") as f:
             cardMsg = await storageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + cardData["deck_name"] + " -> " + colour + "_back", file=File(f))
             cardData[colour + "_back"] = cardMsg.attachments[0].url
@@ -136,9 +137,10 @@ def store_cards_local(cardData):
     return cardData
 
 
-async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guildID, emptyExpansions, cardStorageMethod, cardStorageChannel, callingMsg, contentFontSize=CONTENT_TEXT_SCALE, titleFontSize=TITLE_TEXT_SCALE):
-    changeLog = ""
-    existingFolders = dict()
+async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guildID, emptyExpansions, cardStorageMethod, cardStorageChannel, callingMsg, contentFontSize=CONTENT_TEXT_SCALE, titleFontSize=TITLE_TEXT_SCALE) -> Tuple[dict, Dict[str, List[str]]]:
+    changeLog: Dict[str, List[str]] = {exp: [] for exp in oldMeta["expansions"]}
+    changeLog.update({exp: [] for exp in newGameData["expansions"]})
+    existingFolders = {}
     fonts = CardFontConfig(cardFont, contentFontSize=contentFontSize, titleFontSize=titleFontSize)
     expansions, deckName = newGameData["expansions"], oldMeta["deck_name"]
     
@@ -147,7 +149,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
         expansionsToRemove.append(exp)
     
     for expansionName in expansionsToRemove:
-        changeLog += "\nDeleting expansion: " + expansionName
+        changeLog[expansionName].append("Expansion deleted")
         if "dir" in oldMeta["expansions"][expansionName]:
             if os.path.isdir(oldMeta["expansions"][expansionName]["dir"]):
                 shutil.rmtree(oldMeta["expansions"][expansionName]["dir"])
@@ -169,7 +171,8 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                 oldMeta["expansions"][args["expansion"]][args["card_type"]][-1]["requiredWhiteCards"] = args["card_text"].count("_")
 
             # print("Added new meta to expansion " + args["expansion"] + ", colour " + args["card_type"] + ":\n",oldMeta["expansions"][args["expansion"]][args["card_type"]][-1])
-                
+            
+            args["file_name"] = args["file_name"].replace("/", os.sep)
             make_card(*args.values())
         except Exception as e:
             print("EXCEPT ON CARD TEXT",args["card_text"])
@@ -186,19 +189,19 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
 
     newExpansions = [exp for exp in expansions if exp not in oldMeta["expansions"]]
     for expansionName in newExpansions:
-        changeLog += "\nAdding new expansion: " + expansionName
-        expansionDir = decksFolder + os.sep + str(guildID) + os.sep + str(deckID) + os.sep + str(hash(expansionName))
+        changeLog[expansionName].append("New expansion created")
+        expansionDir = os.path.join(decksFolder, str(guildID), str(deckID), str(hash(expansionName)))
         if os.path.isdir(expansionDir):
             shutil.rmtree(expansionDir)
-        os.makedirs(expansionDir + os.sep + "white")
-        os.makedirs(expansionDir + os.sep + "black")
+        os.makedirs(os.path.join(expansionDir, "white"))
+        os.makedirs(os.path.join(expansionDir, "black"))
         with futures.ThreadPoolExecutor(len(psutil.Process().cpu_affinity())) as executor:
             for colour, cards in zip(COLOURS, (expansions[expansionName]["white"], expansions[expansionName]["black"])):
                 executor.map(
                     lambda elem: saveCard(elem),
                     [{
                         "card_text": c[1],
-                        "file_name": expansionDir + os.sep + colour + os.sep + "card" + str(c[0]) + "." + IMG_FORMAT,
+                        "file_name": os.path.join(expansionDir, colour, "card" + str(c[0]) + "." + IMG_FORMAT),
                         "fonts": fonts,
                         "expansion": expansionName,
                         "card_type": colour,
@@ -211,7 +214,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                 if cardStorageMethod == "local":
                     card["url"] = local_file_url(card["url"])
                 elif cardStorageMethod == "discord":
-                    cardPath = decksFolder + os.sep + card["url"]
+                    cardPath = os.path.join(decksFolder, card["url"])
                     with open(cardPath, "rb") as f:
                         cardMsg = await cardStorageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + deckName + " -> " + expansionName + " -> " + card["text"], file=File(f))
                         card["url"] = cardMsg.attachments[0].url
@@ -219,16 +222,16 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                     raise ValueError("Unsupported cfg.cardStorageMethod: " + str(cardStorageMethod))
 
     for expansionName in [exp for exp in expansions if exp not in newExpansions]:
-        expansionDir = decksFolder + os.sep + str(guildID) + os.sep + str(deckID) + os.sep + str(hash(expansionName))
+        expansionDir = os.path.join(decksFolder, str(guildID), str(deckID), str(hash(expansionName)))
         for colour in oldMeta["expansions"][expansionName]:
             if colour == "dir":
                 continue
 
             cardsToRemove = [cardData for cardData in oldMeta["expansions"][expansionName][colour] if cardData["text"] not in expansions[expansionName][colour]]
             if len(cardsToRemove) > 0:
-                changeLog += "\nRemoving " + str(len(cardsToRemove)) + " " + colour + " card(s) from expansion: " + expansionName
+                changeLog[expansionName].append(f"-{len(cardsToRemove)} {colour} card{'' if len(cardsToRemove)== 1 else 's'}")
                 for cardData in cardsToRemove:
-                    imgPath = decksFolder + os.sep + url_to_local_path(cardData["url"])
+                    imgPath = os.path.join(decksFolder, url_to_local_path(cardData["url"]))
                     if os.path.isfile(imgPath):
                         os.remove(imgPath)
                     oldMeta["expansions"][expansionName][colour].remove(cardData)
@@ -240,15 +243,12 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                 else:
                     cardNumOffset = max(int(c['url'].split("/")[-1][len("card"):-len(IMG_FORMAT)-1]) for c in oldMeta["expansions"][expansionName][colour]) + 1
 
-                print("fixoradd")
-                print("allcards",allCards)
-
                 with futures.ThreadPoolExecutor(len(psutil.Process().cpu_affinity())) as executor:
                     executor.map(
                         lambda elem: saveCard(elem),
                         [{
                             "card_text": c[1],
-                            "file_name": decksFolder + os.sep + oldMeta["expansions"][expansionName]["dir"] + os.sep + colour + os.sep + "card" + str(c[0] + cardNumOffset) + "." + IMG_FORMAT,
+                            "file_name": os.path.join(decksFolder, oldMeta["expansions"][expansionName]["dir"], colour, "card" + str(c[0] + cardNumOffset) + "." + IMG_FORMAT),
                             "fonts": fonts,
                             "expansion": expansionName,
                             "card_type": colour,
@@ -257,51 +257,45 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                         } for c in enumerate(allCards)],
                     )
 
-                print("done")
-
                 for cardText in allCards:
-                    print("card:",cardText)
                     card = None
                     for currentCard in oldMeta["expansions"][expansionName][colour]:
                         if currentCard["text"] == cardText:
                             card = currentCard
-                            print("found")
                             break
                     if card is None:
-                        print("not found")
                         raise RuntimeError("could not find render data for new card : " + cardText)
                     if cardStorageMethod == "local":
-                        print("local")
-                        print(f"\nurl used to be: {card['url']}")
                         card["url"] = local_file_url(card["url"])
-                        print(f"\nurl is now: {card['url']}")
                         # if card["url"] == f"{PROTOCOL}://{BASE_URL}":
-                        #     card["url"] = local_file_url((expansionDir + os.sep + colour + os.sep + "card" + str(c[0]) + "." + IMG_FORMAT))
+                        #     card["url"] = local_file_url((os.path.join(expansionDir, colour, "card" + str(c[0]) + "." + IMG_FORMAT)))
                     elif cardStorageMethod == "discord":
-                        print("discord")
-                        cardPath = decksFolder + os.sep + card["url"]
+                        cardPath = os.path.join(decksFolder, card["url"])
                         with open(cardPath, "rb") as f:
                             cardMsg = await cardStorageChannel.send(str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + deckName + " -> " + expansionName + " -> " + card["text"], file=File(f))
                             card["url"] = cardMsg.attachments[0].url
                     else:
-                        print("unknown")
                         raise ValueError("Unsupported cfg.cardStorageMethod: " + str(cardStorageMethod))
 
 
             cardsToAdd = [cardText for cardText in expansions[expansionName][colour] if not oldMetaHasCard(expansionName, colour, cardText)]
             if len(cardsToAdd) > 0:
-                changeLog += "\nAdding " + str(len(cardsToAdd)) + " " + colour + " card(s) to expansion: " + expansionName
+                changeLog[expansionName].append(f"+{len(cardsToAdd)} {colour} card{'' if len(cardsToAdd)== 1 else 's'}")
                 await fixOrAddCardsSet(cardsToAdd)
 
             cardsToFix = [cardData for cardData in oldMeta["expansions"][expansionName][colour] if cardData["url"] == f"{PROTOCOL}://{BASE_URL}"]
             if len(cardsToFix) > 0:
-                changeLog += "\nFixing " + str(len(cardsToFix)) + " empty " + colour + " card(s) in expansion: " + expansionName
+                changeLog[expansionName].append(f"{len(cardsToRemove)} empty {colour} card{'' if len(cardsToRemove)== 1 else 's'} fixed")
                 for cardData in cardsToFix:
-                    imgPath = decksFolder + os.sep + url_to_local_path(cardData["url"])
+                    imgPath = os.path.join(decksFolder, url_to_local_path(cardData["url"]))
                     if os.path.isfile(imgPath):
                         os.remove(imgPath)
                     oldMeta["expansions"][expansionName][colour].remove(cardData)
 
                 await fixOrAddCardsSet([c['text'] for c in cardsToFix])
     
+    unchangedExpansions = [e for e in changeLog if not changeLog[e]]
+    for e in unchangedExpansions:
+        del changeLog[e]
+
     return (oldMeta, changeLog)

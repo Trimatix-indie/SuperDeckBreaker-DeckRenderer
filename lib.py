@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import time
 
-from os import listdir, getcwd, sep
+from os import listdir, getcwd
 from os.path import isfile, join
 
 # Card options
@@ -50,8 +50,8 @@ class CardFontConfig:
 
 def deck_path(decks_dir, guild_id, deck_name):
     if type(deck_name) == int:
-        return decks_dir + os.sep + str(guild_id) + os.sep + str(deck_name)
-    return decks_dir + os.sep + str(guild_id) + os.sep + str(hash(deck_name))
+        return join(decks_dir, str(guild_id), str(deck_name))
+    return join(decks_dir, str(guild_id), str(hash(deck_name)))
 
 
 def clear_deck_path(decks_dir, guild_id, deck_name):
@@ -63,17 +63,17 @@ def clear_deck_path(decks_dir, guild_id, deck_name):
 
 def card_path(existing_folders, decks_dir, guild_id, deck_name, card_type, num, expansion=None, build=False, root_dir=False):
     "Returns deck_path/{CARDS_DIR|BUILD_DIR}/[hash(expansion)]/card_type/card<num>." + IMG_FORMAT
-    folder = deck_path(decks_dir, guild_id, deck_name) + os.sep + (BUILD_DIR if build else CARDS_DIR)
+    folder = join(deck_path(decks_dir, guild_id, deck_name), (BUILD_DIR if build else CARDS_DIR))
 
     if root_dir:
-        return os.path.join(folder, f"card{num}." + IMG_FORMAT)
+        return join(folder, f"card{num}." + IMG_FORMAT)
     if expansion is not None:
-        folder = os.path.join(folder, str(hash(expansion)))
-    folder = os.path.join(folder, card_type)
+        folder = join(folder, str(hash(expansion)))
+    folder = join(folder, card_type)
     if not (existing_folders.get(folder) or os.path.isdir(folder)):
         os.makedirs(folder)
         existing_folders[folder] = True
-    return os.path.join(folder, f"card{num}." + IMG_FORMAT)
+    return join(folder, f"card{num}." + IMG_FORMAT)
 
 
 def local_file_url(card_path):
