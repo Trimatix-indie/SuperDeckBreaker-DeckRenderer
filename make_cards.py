@@ -175,7 +175,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
 
             # print("Added new meta to expansion " + args["expansion"] + ", colour " + args["card_type"] + ":\n",oldMeta["expansions"][args["expansion"]][args["card_type"]][-1])
             
-            args["file_name"] = os.path.join(decksFolder, args["file_name"].replace("/", os.sep).lstrip(os.sep))
+            args["file_name"] = args["file_name"].replace("/", os.sep).lstrip(os.sep)
             make_card(*args.values())
         except Exception as e:
             print("EXCEPT ON CARD TEXT",args["card_text"])
@@ -204,7 +204,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                     lambda elem: saveCard(elem),
                     [{
                         "card_text": c[1],
-                        "file_name": os.path.join(expansionDir, colour, "card" + str(c[0]) + "." + IMG_FORMAT),
+                        "file_name": card_path(existingFolders, decksFolder, guildID, deckName, colour, c[0], expansion=expansionName),
                         "fonts": fonts,
                         "expansion": expansionName,
                         "card_type": colour,
@@ -251,7 +251,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                         lambda elem: saveCard(elem),
                         [{
                             "card_text": c[1],
-                            "file_name": os.path.join(decksFolder, oldMeta["expansions"][expansionName]["dir"], colour, "card" + str(c[0] + cardNumOffset) + "." + IMG_FORMAT),
+                            "file_name": card_path(existingFolders, decksFolder, guildID, deckName, colour, c[0] + cardNumOffset, expansion=expansionName),
                             "fonts": fonts,
                             "expansion": expansionName,
                             "card_type": colour,
