@@ -168,7 +168,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                 if cardStorageMethod == "local":
                     oldMeta["expansions"][args["expansion"]]["dir"] = str(pathlib.Path(args["file_name"]).parent.parent)
 
-            oldMeta["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[min(1, len(args["file_name"].split(decksFolder)) - 1).lstrip(os.sep)]})
+            oldMeta["expansions"][args["expansion"]][args["card_type"]].append({"text": args["card_text"], "url":args["file_name"].split(decksFolder)[min(1, len(args["file_name"].split(decksFolder)) - 1)].lstrip(os.sep)})
 
             if args["card_type"] == COLOURS[1]:
                 oldMeta["expansions"][args["expansion"]][args["card_type"]][-1]["requiredWhiteCards"] = args["card_text"].count("_")
@@ -239,9 +239,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                         os.remove(imgPath)
                     oldMeta["expansions"][expansionName][colour].remove(cardData)
 
-            cardsToAdd = [cardText for cardText in expansions[expansionName][colour] if not oldMetaHasCard(expansionName, colour, cardText)]
-            if len(cardsToAdd) > 0:
-                changeLog[expansionName].append(f"+{len(cardsToAdd)} {colour} card{'' if len(cardsToAdd)== 1 else 's'}")
+            async def fixOrAddCardsSet(allCards):
                 # awful brute force method
                 if len(oldMeta["expansions"][expansionName][colour]) == 0:
                     cardNumOffset = 0
@@ -259,10 +257,10 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                             "card_type": colour,
                             "show_small": True,
                             "game_name": deckName
-                        } for c in enumerate(cardsToAdd)],
+                        } for c in enumerate(allCards)],
                     )
 
-                for cardText in cardsToAdd:
+                for cardText in allCards:
                     card = None
                     for currentCard in oldMeta["expansions"][expansionName][colour]:
                         if currentCard["text"] == cardText:
@@ -282,6 +280,12 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                     else:
                         raise ValueError("Unsupported cfg.cardStorageMethod: " + str(cardStorageMethod))
 
+
+            cardsToAdd = [cardText for cardText in expansions[expansionName][colour] if not oldMetaHasCard(expansionName, colour, cardText)]
+            if len(cardsToAdd) > 0:
+                changeLog[expansionName].append(f"+{len(cardsToAdd)} {colour} card{'' if len(cardsToAdd)== 1 else 's'}")
+                await fixOrAddCardsSet(cardsToAdd)
+
             cardsToFix = [cardData for cardData in oldMeta["expansions"][expansionName][colour] if cardData["url"] == f"{PROTOCOL}://{BASE_URL}"]
             if len(cardsToFix) > 0:
                 changeLog[expansionName].append(f"{len(cardsToFix)} empty {colour} card{'' if len(cardsToFix)== 1 else 's'} fixed")
@@ -291,48 +295,7 @@ async def update_deck(decksFolder, oldMeta, newGameData, deckID, cardFont, guild
                         os.remove(imgPath)
                     oldMeta["expansions"][expansionName][colour].remove(cardData)
 
-                fixingCardTexts = [c['text'] for c in cardsToFix]
-
-                # COPY OF cardsToAdd METHOD ABOVE
-                # awful brute force method
-                if len(oldMeta["expansions"][expansionName][colour]) == 0:
-                    cardNumOffset = 0
-                else:
-                    cardNumOffset = max(int(c['url'].split("/")[-1][len("card"):-len(IMG_FORMAT)-1]) for c in oldMeta["expansions"][expansionName][colour]) + 1
-
-                with futures.ThreadPoolExecutor(len(psutil.Process().cpu_affinity())) as executor:
-                    executor.map(
-                        lambda elem: saveCard(elem),
-                        [{
-                            "card_text": c[1],
-                            "file_name": os.path.join(decksFolder, oldMeta["expansions"][expansionName]["dir"], colour, "card" + str(c[0] + cardNumOffset) + "." + IMG_FORMAT),
-                            "fonts": fonts,
-                            "expansion": expansionName,
-                            "card_type": colour,
-                            "show_small": True,
-                            "game_name": deckName
-                        } for c in enumerate(fixingCardTexts)],
-                    )
-
-                for cardText in fixingCardTexts:
-                    card = None
-                    for currentCard in oldMeta["expansions"][expansionName][colour]:
-                        if currentCard["text"] == cardText:
-                            card = currentCard
-                            break
-                    if card is None:
-                        raise RuntimeError("could not find render data for new card : " + cardText)
-                    if cardStorageMethod == "local":
-                        card["url"] = local_file_url(card["url"])
-                        # if card["url"] == f"{PROTOCOL}://{BASE_URL}":
-                        #     card["url"] = local_file_url((os.path.join(expansionDir, colour, "card" + str(c[0]) + "." + IMG_FORMAT)))
-                    elif cardStorageMethod == "discord":
-                        cardPath = os.path.join(decksFolder, card["url"].lstrip(os.sep))
-                        with open(cardPath, "rb") as f:
-                            cardMsg = await cardStorageChannel.send("EMPTY CARD FIX: " + str(callingMsg.author.id) + "@" + str(callingMsg.guild.id) + "/" + str(callingMsg.channel.id) + "\n" + deckName + " -> " + expansionName + " -> " + card["text"], file=File(f))
-                            card["url"] = cardMsg.attachments[0].url
-                    else:
-                        raise ValueError("Unsupported cfg.cardStorageMethod: " + str(cardStorageMethod))
+                await fixOrAddCardsSet([c['text'] for c in cardsToFix])
     
     unchangedExpansions = [e for e in changeLog if not changeLog[e]]
     for e in unchangedExpansions:
